@@ -1,6 +1,6 @@
 # Uma livraria decidiu implementar um sistema de descontos para seus clientes com base na quantidade de livros comprados.
 
-# O sistema de descontos é definido da seguinte maneira:
+# O sistema de descontos é definido da seguinte maneira::
 
 # Se o cliente comprar 1 livro, não terá desconto;
 # Se o cliente comprar 2 ou 3 livros, terá um desconto de 10% sobre o valor total;
