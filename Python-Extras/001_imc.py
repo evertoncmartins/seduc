@@ -12,5 +12,5 @@ elif imc < 30:
 else:
     status = 'Obeso'
 
-print('Seu peso é: {:.2f}'.format(imc))
+print('O Seu peso é: {:.2f}'.format(imc))
 print('Status: {}'.format(status))
