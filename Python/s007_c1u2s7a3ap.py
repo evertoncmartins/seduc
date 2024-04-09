@@ -1,11 +1,14 @@
 """
-Crie um programa em Python que solicite a idade do usuário e informe se ele possui idade suficiente para assistir a um filme. 
-Caso a idade seja maior ou igual a 18, o programa deve exibir a mensagem: "Você pode assistir ao filme.". Caso contrário, a mensagem deve ser: "Desculpe, você não tem idade suficiente para assistir ao filme.".
+Se o custo total for igual ou superior a R$ 100,00, o programa deve calcular e exibir o valor final da compra com um desconto de 10%. 
+
+Caso contrário, deve informar que o usuário não ganhou o desconto, exibindo o valor final da compra por inteiro.
+
+Desenvolva um programa em Python que receba o valor de uma compra realizada em uma loja e aplique ou não o desconto quando conveniente.
 """
 
-idade = int(input("Digite a idade: "))
+valor = float(input("Digite o valor da compra: "))
 
-if idade >= 18:
-    print("Você pode assistir ao filme.")
+if valor >= 100:
+    print("Valor com desconto de 10%: R${}".format(valor*0.90))
 else:
-    print("Desculpe, você não tem idade suficiente para assistir ao filme.")
+    print("Não ganhou desconto, valor da compra: R${}".format(valor))
