@@ -9,7 +9,7 @@ portifolio = input("Tem portifólio forte? (S/N): ")
 audicao = input("Tem audição excelente? (S/N): ")
 treinamento = input("Tem 2 anos de treinamento prévio? (S/N): ")
 
-if portifolio == 's' or audicao == 's' and treinamento == 's':
+if portifolio == 's' or (audicao == 's' and treinamento == 's'):
     print("Você pode ser admitido")
 else:
     print("Você não pode ser admitido")
