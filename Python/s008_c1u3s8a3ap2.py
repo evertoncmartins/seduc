@@ -9,9 +9,9 @@ Escreva um programa que determine se um candidato é elegível para a vaga.
 exp_python = int(input("Tempo de experiência com Python: "))
 exp_ml = int(input("Tempo de experiência com Machine Learning: "))
 diploma = input(
-    "Tem diplima de mestrado em Ciência da Computação? (S/N): ").lower()
+    "Tem diploma de mestrado em Ciência da Computação? (S/N): ").lower()
 
-if exp_python >= 3 and (exp_ml >= 2 or diploma == 's'):
+if (exp_python >= 3 and exp_ml >= 2) or diploma == 's':
     print("É elegível para a vaga.")
 else:
     print("Não é elegível para a vaga.")

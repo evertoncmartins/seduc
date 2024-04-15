@@ -5,9 +5,9 @@ Uma academia de artes tem um processo de admissão que inclui o envio de um port
 Escreva um programa que determine se um candidato será admitido ou não.
 """
 
-portifolio = input("Tem portifólio forte? (S/N): ")
-audicao = input("Tem audição excelente? (S/N): ")
-treinamento = input("Tem 2 anos de treinamento prévio? (S/N): ")
+portifolio = input("Tem portifólio forte? (S/N): ").lower()
+audicao = input("Tem audição excelente? (S/N): ").lower()
+treinamento = input("Tem 2 anos de treinamento prévio? (S/N): ").lower()
 
 if portifolio == 's' or (audicao == 's' and treinamento == 's'):
     print("Você pode ser admitido")
