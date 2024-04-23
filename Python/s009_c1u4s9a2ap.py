@@ -20,10 +20,10 @@ if 1 <= numero_candidato <= len(candidatos):
     # Obtém as informações do candidato
     candidatos = candidatos[numero_candidato - 1]
     print("\nInformações do candidato:")
-    print("Nome:", candidato[0])
-    print("Partido:", candidato[1])
-    print("Vice:", candidato[2])
-    print("Cargos já ocupados:", candidato[3])
-    print("Idade:", candidato[4])
+    print("Nome:", candidatos[0])
+    print("Partido:", candidatos[1])
+    print("Vice:", candidatos[2])
+    print("Cargos já ocupados:", candidatos[3])
+    print("Idade:", candidatos[4])
 else:
     print("Número de candidato inválido.")
