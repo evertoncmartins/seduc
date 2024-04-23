@@ -18,7 +18,7 @@ numero_candidato = int(input("Digite o número do candidato que deseja consultar
 # Verifica se o número do candidato é válido
 if 1 <= numero_candidato <= len(candidatos):
     # Obtém as informações do candidato
-    candidato = candidatos[numero_candidato - 1]
+    candidatos = candidatos[numero_candidato - 1]
     print("\nInformações do candidato:")
     print("Nome:", candidato[0])
     print("Partido:", candidato[1])
