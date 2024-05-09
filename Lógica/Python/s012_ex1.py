@@ -9,15 +9,16 @@
 
 pedido = float(input('Valor do pedido: '))
 membro = input('Membro (S/N): ').lower()
+entrega = 0
 
 if pedido < 10:
-    pedido += 5
+    entrega += 5
 elif pedido < 20:
-    pedido += 3
+    entrega += 3
 else:
-    pedido += 0
+    entrega += 0
 
 if membro == 's':
-    pedido -= 2
+    entrega -= 2
 
-print(f'Valor total: {pedido}')
+print(f'Valor da entrega: {entrega}')
