@@ -19,6 +19,6 @@ else:
     entrega += 0
 
 if membro == 's':
-    entrega -= 2
+    entrega = max(entrega - 2, 0)  # garante que a entrega ñ seja negativa
 
 print(f'Valor da entrega: {entrega}')
