@@ -16,11 +16,11 @@ def aplicar_desconto_padrao(valor):
 
 def calcular_desconto(tipo_cliente, valor):
     descontos = {
-        "estudante": valor * 0.9,
-        "membro": valor * 0.85,
-        "vip": valor * 0.8
+        "estudante": aplicar_desconto_estudante,
+        "membro": aplicar_desconto_membro,
+        "vip": aplicar_desconto_vip
     }
-    return descontos.get(tipo_cliente, aplicar_desconto_padrao)
+    return descontos.get(tipo_cliente, aplicar_desconto_padrao)(valor)
 
 
 valor_descontado = calcular_desconto("membro", 100)
