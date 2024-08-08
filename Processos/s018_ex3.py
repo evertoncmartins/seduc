@@ -6,37 +6,37 @@ class Livro:
         self.__preco = preco
 
     # Getter para titulo
-    def get_titulo(self):
+    def getTitulo(self):
         return self.__titulo
 
     # Setter para titulo
-    def set_titulo(self, novo_titulo):
-        self.__titulo = novo_titulo
+    def setTitulo(self, novoTitulo):
+        self.__titulo = novoTitulo
 
-    def get_autor(self):
+    def getAutor(self):
         return self.__autor
 
-    def set_autor(self, novo_autor):
-        self.__autor = novo_autor
+    def setAutor(self, novoAutor):
+        self.__autor = novoAutor
 
-    def get_ano_publicacao(self):
-        return self.__ano_publicacao
+    def getAnoPublicacao(self):
+        return self.__anoPublicacao
 
-    def set_ano_publicacao(self, novo_ano_publicacao):
-        self.__ano_publicacao = novo_ano_publicacao
+    def setAnoPublicacao(self, novoAnoPublicacao):
+        self.__anoPublicacao = novoAnoPublicacao
 
-    def get_preco(self):
+    def getPreco(self):
         return self.__preco
 
-    def set_preco(self, novo_preco):
-        self.__preco = novo_preco
+    def setPreco(self, novoPreco):
+        self.__preco = novoPreco
 
 
 # Implementando a Classe
 livro = Livro('Harry Potter', 'Desconhecido', '2025', 45)
 
-print(livro.get_titulo())
+print(livro.getTitulo())
 
-livro.set_titulo('Sombras da noite')
+livro.setTitulo('Sombras da noite')
 
-print(livro.get_titulo())
+print(livro.getTitulo())
