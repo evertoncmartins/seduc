@@ -35,8 +35,12 @@ class Livro:
 # Implementando a Classe
 livro = Livro('Harry Potter', 'Desconhecido', '2025', 45)
 
+# Imprime uma instância de Livro
 print(livro.getTitulo())
+print(livro.getAnoPublicacao())
 
+# Altera o título do livro
 livro.setTitulo('Sombras da noite')
 
+# Imprime
 print(livro.getTitulo())
