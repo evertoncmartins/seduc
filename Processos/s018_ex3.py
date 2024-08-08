@@ -1,8 +1,8 @@
 class Livro:
-    def __init__(self, titulo, autor, ano_publicacao, preco):
+    def __init__(self, titulo, autor, anoPublicacao, preco):
         self.__titulo = titulo
         self.__autor = autor
-        self.__ano_publicacao = ano_publicacao
+        self.__anoPublicacao = anoPublicacao
         self.__preco = preco
 
     # Getter para titulo
