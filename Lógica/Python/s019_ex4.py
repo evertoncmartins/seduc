@@ -5,7 +5,7 @@ N = int(input('Digite um número para a sequência: ').strip())
 sequencia = ""
 
 # Gerar a sequência
-for i in range(1, N):
+for i in range(1, N+1):
     for _ in range(i):
         sequencia += f"{i} "
 
