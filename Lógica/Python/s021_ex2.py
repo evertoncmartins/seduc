@@ -1,5 +1,5 @@
 # Listas de pontuações e categorias
-pontuacoes = [4, 2, 5, 3, 1]
+pontuacoes = [1, 2, 5, 3, 1]
 categorias = ["produto", "atendimento", "produto", "entrega", "atendimento"]
 
 # Dicionário para armazenar feedbacks críticos por categoria
