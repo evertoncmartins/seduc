@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Cobrinha</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: black;
+      color: white;
+      font-family: 'Courier New', Courier, monospace; /* Fonte quadradinha */
+      position: relative;
+    }
+
+    canvas {
+      background-color: #222;
+      border: 10px solid #fff;
+      display: none;
+    }
+
+    .menu, .game-over {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .menu.active, .game-over.active {
+      display: flex;
+    }
+
+    .menu h1 {
+      font-size: 48px;
+      color: #00ff00;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .snake-logo {
+      display: grid;
+      grid-template-columns: repeat(10, 12px);
+      gap: 2px;
+      margin-bottom: 20px;
+    }
+
+    .snake-logo div {
+      width: 12px;
+      height: 12px;
+      background-color: #00ff00;
+    }
+
+    .menu label {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    .menu input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 2px solid #00ff00;
+      text-align: center;
+    }
+
+    .menu input[type="range"] {
+      width: 300px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 20px;
+      margin-top: 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #00ff00;
+      color: black;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #00cc00;
+    }
+
+    .scoreboard {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .scoreboard p {
+      margin: 0;
+    }
+
+    .scoreboard span {
+      font-weight: bold;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 18px;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Tela Inicial -->
+  <div class="menu active" id="menu">
+    <h1>Jogo da Cobrinha</h1>
+    <!-- Logo da Cobrinha em formato pixelado -->
+    <div class="snake-logo">
+      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div style="background-color: black;"></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div style="background-color: black;"></div><div></div><div style="background-color: black;"></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div style="background-color: black;"></div><div></div><div style="background-color: black;"></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div style="background-color: black;"></div><div style="background-color: black;"></div><div></div><div style="background-color: black;"></div><div style="background-color: black;"></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div style="background-color: black;"></div><div></div><div style="background-color: black;"></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div style="background-color: black;"></div><div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <label for="playerName">Nome do Jogador:</label>
+    <input type="text" id="playerName" placeholder="Digite seu nome">
+    <label for="speed">Velocidade da Cobrinha: <span id="speedValue">5</span></label>
+    <input type="range" id="speed" min="1" max="7" value="5" oninput="updateSpeedValue()">
+    <button onclick="startGame()">Iniciar Jogo</button>
+    <p class="error-message" id="errorMessage">Por favor, insira seu nome!</p>
+  </div>
+
+  <!-- Tela do Jogo -->
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+  <!-- Tela Final -->
+  <div class="game-over" id="gameOverMenu">
+    <h2 id="finalScore"></h2>
+    <h3 id="gameOutcome"></h3>
+    <button onclick="restartGame()">Voltar ao Menu Inicial</button>
+  </div>
+
+  <!-- Pontuação e Nome do Jogador -->
+  <div class="scoreboard" id="scoreboard">
+    <p><span id="playerNameDisplay">Nome: </span> | <span id="scoreDisplay">Pontuação: 0</span></p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const box = 20;
+    const canvasSize = canvas.width / box;
+    let snake = [{x: 10, y: 10}];
+    let food = {x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize)};
+    let direction = {x: 0, y: 0};
+    let score = 0;
+    let intervalId;
+    let gameSpeed = 200;
+    const maxScore = 25;
+
+    const menu = document.getElementById('menu');
+    const gameOverMenu = document.getElementById('gameOverMenu');
+    const finalScore = document.getElementById('finalScore');
+    const gameOutcome = document.getElementById('gameOutcome');
+    const speedValueDisplay = document.getElementById('speedValue');
+    const playerNameDisplay = document.getElementById('playerNameDisplay');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const errorMessage = document.getElementById('errorMessage');
+
+    document.addEventListener('keydown', changeDirection);
+
+    function startGame() {
+      const playerName = document.getElementById('playerName').value;
+      const speed = document.getElementById('speed').value;
+      if (playerName) {
+        errorMessage.style.display = 'none'; // Oculta mensagem de erro
+        gameSpeed = 500 - (speed * 60);
+        menu.classList.remove('active');
+        canvas.style.display = 'block';
+        snake = [{x: 10, y: 10}];
+        direction = {x: 0, y: 0};
+        score = 0;
+        food = {x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize)};
+        intervalId = setInterval(updateGame, gameSpeed);
+        playerNameDisplay.textContent = `Nome: ${playerName}`;
+      } else {
+        errorMessage.style.display = 'block'; // Exibe mensagem de erro
+      }
+    }
+
+    function updateGame() {
+      moveSnake();
+      if (checkCollision()) {
+        endGame('lose');
+      } else if (snake[0].x === food.x && snake[0].y === food.y) {
+        score++;
+        if (score === maxScore) {
+          endGame('win');
+        } else {
+          snake.push({});
+          food = {x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize)};
+        }
+      }
+      draw();
+      scoreDisplay.textContent = `Pontuação: ${score}`;
+    }
+
+    function moveSnake() {
+      const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
+      snake.pop();
+      snake.unshift(head);
+    }
+
+    function checkCollision() {
+      const head = snake[0];
+      if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize) return true;
+      for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) return true;
+      }
+      return false;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snake.forEach((part, index) => {
+        ctx.fillStyle = index === 0 ? 'green' : 'lightgreen';
+        ctx.fillRect(part.x * box, part.y * box, box, box);
+      });
+
+      ctx.fillStyle = 'red';
+      ctx.fillRect(food.x * box, food.y * box, box, box);
+    }
+
+    function changeDirection(event) {
+      switch(event.key) {
+        case 'ArrowUp':
+          if (direction.y === 0) direction = {x: 0, y: -1};
+          break;
+        case 'ArrowDown':
+          if (direction.y === 0) direction = {x: 0, y: 1};
+          break;
+        case 'ArrowLeft':
+          if (direction.x === 0) direction = {x: -1, y: 0};
+          break;
+        case 'ArrowRight':
+          if (direction.x === 0) direction = {x: 1, y: 0};
+          break;
+      }
+    }
+
+    function endGame(outcome) {
+      clearInterval(intervalId);
+      finalScore.textContent = `Pontuação final: ${score}`;
+      gameOutcome.textContent = outcome === 'win' ? 'Você venceu!' : 'Você perdeu!';
+      canvas.style.display = 'none';
+      gameOverMenu.classList.add('active');
+    }
+
+    function restartGame() {
+      gameOverMenu.classList.remove('active');
+      menu.classList.add('active');
+    }
+
+    function updateSpeedValue() {
+      speedValueDisplay.textContent = document.getElementById('speed').value;
+    }
+  </script>
+</body>
+</html>
