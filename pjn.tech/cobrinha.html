@@ -15,6 +15,7 @@
       color: white;
       font-family: 'Courier New', Courier, monospace; /* Fonte quadradinha */
       position: relative;
+      overflow: hidden; /* Garante que o footer não sobreponha o conteúdo */
     }
 
     canvas {
@@ -121,6 +122,16 @@
       margin-top: 10px;
       display: none;
     }
+
+    footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #888;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -159,6 +170,11 @@
   <div class="scoreboard" id="scoreboard">
     <p><span id="playerNameDisplay">Nome: </span> | <span id="scoreDisplay">Pontuação: 0</span></p>
   </div>
+
+  <!-- Rodapé -->
+  <footer>
+    Desenvolvido por Inteligência Artificial | ChatGPT | PJN.Tech
+  </footer>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
