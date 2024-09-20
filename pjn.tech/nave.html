@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Defender</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            border: 3px solid white; /* Borda branca */
+            margin: 0 auto;
+        }
+        #score, #hearts, #bombs {
+            color: white;
+            font-size: 20px;
+            position: absolute;
+            z-index: 1;
+        }
+        #score {
+            top: 10px;
+            left: 10px;
+        }
+        #hearts {
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: row; /* Alinha corações horizontalmente */
+            gap: 5px; /* Espaçamento entre os corações */
+        }
+        #bombs {
+            top: 50px; /* Ajustado para ficar abaixo dos corações */
+            right: 10px;
+            display: flex;
+            flex-direction: row; /* Alinha bombas horizontalmente */
+            gap: 5px; /* Espaçamento entre as bombas */
+        }
+        .heart, .bomb {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            margin-bottom: 5px; /* Espaçamento vertical */
+        }
+        .heart {
+            background-color: red;
+            clip-path: polygon(50% 0%, 100% 35%, 80% 100%, 50% 80%, 20% 100%, 0% 35%);
+        }
+        .bomb {
+            background-color: gray;
+            clip-path: circle(50%);
+        }
+        #startScreen, #gameOverScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            color: white;
+            text-align: center;
+        }
+        #startScreen h1, #startScreen p, #gameOverScreen h1, #gameOverScreen p {
+            margin: 0;
+            padding: 0;
+        }
+        #startScreen h1 {
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+        #startScreen p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        #startScreen input, #startScreen button, #gameOverScreen button {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #startScreen input {
+            width: 250px;
+        }
+        #startScreen button {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+        #startScreen button:hover {
+            background-color: #555;
+        }
+        #gameOverScreen button {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+        #gameOverScreen button:hover {
+            background-color: #555;
+        }
+        .logo {
+            font-family: monospace;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 24px;
+            line-height: 1.2;
+            display: inline-block;
+        }
+        .logo span {
+            display: block;
+        }
+        .logo .ship {
+            color: cyan;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <div class="logo">
+            <span class="ship">  /\\  </span>
+            <span class="ship"> /  \\ </span>
+            <span class="ship">|    |</span>
+            <span class="ship"> \\  / </span>
+            <span class="ship">  \\/  </span>
+        </div>
+        <h1>Space Defender</h1>
+        <p>Digite seu nome:</p>
+        <input type="text" id="playerName" placeholder="Seu nome">
+        <button onclick="startGame()">Iniciar</button>
+    </div>
+
+    <div id="gameOverScreen" style="display: none;">
+        <h1>Game Over</h1>
+        <p>Você perdeu! Seu score: <span id="finalScore">0</span></p>
+        <button onclick="restartGame()">Voltar ao Menu Inicial</button>
+    </div>
+
+    <div id="score">Score: 0</div>
+    <div id="hearts">
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+    <div id="bombs">
+        <div class="bomb"></div>
+        <div class="bomb"></div>
+        <div class="bomb"></div>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        let selectedPlane = 1;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let enemiesKilled = 0;
+        let enemyLimit = 1;
+        let hearts = 5;
+        const maxHearts = 7;
+        let gameOver = false;
+        let heartDrops = [];
+        let playerName = '';
+        let doubleAmmo = false;
+        let lastEnemyKill = 0;
+        let explosions = [];
+        let shipWidth = 50, shipHeight = 30;
+        let bulletWidth = 5, bulletHeight = 10;
+        let enemySize = 20;
+        let ship = { x: 0, y: 0 };
+        let bullets = [];
+        let enemies = [];
+        let keys = {};
+        const borderSize = 10;
+        let isFlashing = false;
+        let bombs = 3;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - borderSize * 2;
+            canvas.height = window.innerHeight - borderSize * 2;
+            ship.x = (canvas.width / 2) - (shipWidth / 2);
+            ship.y = canvas.height - shipHeight - 10;
+        }
+
+        function drawShip() {
+            ctx.fillStyle = isFlashing ? 'black' : (selectedPlane === 1 ? 'gray' : 'darkblue');
+            ctx.beginPath();
+            if (selectedPlane === 1) {
+                // Nave 1
+                ctx.moveTo(ship.x + shipWidth / 2, ship.y);
+                ctx.lineTo(ship.x + shipWidth, ship.y + shipHeight / 2);
+                ctx.lineTo(ship.x + shipWidth / 2, ship.y + shipHeight);
+                ctx.lineTo(ship.x, ship.y + shipHeight / 2);
+                ctx.closePath();
+            } else {
+                // Nave 2
+                ctx.moveTo(ship.x + 10, ship.y);
+                ctx.lineTo(ship.x + shipWidth - 10, ship.y);
+                ctx.lineTo(ship.x + shipWidth, ship.y + shipHeight / 2);
+                ctx.lineTo(ship.x + shipWidth - 10, ship.y + shipHeight);
+                ctx.lineTo(ship.x + 10, ship.y + shipHeight);
+                ctx.lineTo(ship.x, ship.y + shipHeight / 2);
+                ctx.closePath();
+            }
+            ctx.fill();
+        }
+
+        function drawBullet(bullet) {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(bullet.x, bullet.y, bulletWidth, bulletHeight);
+        }
+
+        function drawEnemy(enemy) {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(enemy.x, enemy.y, enemySize, enemySize);
+        }
+
+        function drawHeartDrop(heartDrop) {
+            ctx.fillStyle = 'pink';
+            ctx.beginPath();
+            ctx.moveTo(heartDrop.x + 10, heartDrop.y + 10);
+            ctx.lineTo(heartDrop.x, heartDrop.y);
+            ctx.lineTo(heartDrop.x + 20, heartDrop.y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawExplosion(explosion) {
+            explosion.pixels.forEach(pixel => {
+                ctx.fillStyle = pixel.color;
+                ctx.fillRect(pixel.x, pixel.y, pixel.size, pixel.size);
+            });
+        }
+
+        function drawBombs() {
+            const bombsDiv = document.getElementById('bombs');
+            bombsDiv.innerHTML = '';
+            for (let i = 0; i < bombs; i++) {
+                bombsDiv.innerHTML += '<div class="bomb"></div>';
+            }
+        }
+
+        function createEnemy() {
+            if (Math.random() < 0.02 && enemies.length < enemyLimit) {
+                enemies.push({ x: Math.random() * (canvas.width - enemySize), y: -enemySize });
+            }
+        }
+
+        function moveShip() {
+            if (keys['ArrowLeft'] && ship.x > 0) {
+                ship.x -= 5;
+            }
+            if (keys['ArrowRight'] && ship.x < canvas.width - shipWidth) {
+                ship.x += 5;
+            }
+            if (keys['ArrowUp'] && ship.y > 0) {
+                ship.y -= 5;
+            }
+            if (keys['ArrowDown'] && ship.y < canvas.height - shipHeight) {
+                ship.y += 5;
+            }
+        }
+
+        function shootBullet() {
+            if (doubleAmmo) {
+                bullets.push({ x: ship.x + shipWidth / 2 - bulletWidth / 2, y: ship.y });
+                bullets.push({ x: ship.x + shipWidth / 2 - bulletWidth / 2, y: ship.y });
+            } else {
+                bullets.push({ x: ship.x + shipWidth / 2 - bulletWidth / 2, y: ship.y });
+            }
+        }
+
+        function moveBullets() {
+            bullets.forEach(bullet => bullet.y -= 5);
+            bullets = bullets.filter(bullet => bullet.y > 0);
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => enemy.y += 2);
+        }
+
+        function moveHeartDrops() {
+            heartDrops.forEach(heartDrop => heartDrop.y += 2);
+        }
+
+        function detectCollisions() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    if (
+                        bullets[i].x < enemies[j].x + enemySize &&
+                        bullets[i].x + bulletWidth > enemies[j].x &&
+                        bullets[i].y < enemies[j].y + enemySize &&
+                        bullets[i].y + bulletHeight > enemies[j].y
+                    ) {
+                        score += 10;
+                        enemiesKilled++;
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        if (enemiesKilled % 5 === 0) {
+                            enemyLimit++;
+                        }
+                        if (enemiesKilled % 10 === 0) {
+                            doubleAmmo = true;
+                            setTimeout(() => doubleAmmo = false, 10000); // Munição dupla dura 10 segundos
+                            heartDrops.push({ x: Math.random() * (canvas.width - 20), y: -20 });
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (
+                    enemies[i].x < ship.x + shipWidth &&
+                    enemies[i].x + enemySize > ship.x &&
+                    enemies[i].y < ship.y + shipHeight &&
+                    enemies[i].y + enemySize > ship.y
+                ) {
+                    // Cria animação de explosão
+                    const explosionPixels = [];
+                    for (let k = 0; k < 30; k++) {
+                        explosionPixels.push({
+                            x: ship.x + (Math.random() * shipWidth),
+                            y: ship.y + (Math.random() * shipHeight),
+                            size: Math.random() * 5 + 2,
+                            color: `rgba(255, ${Math.floor(Math.random() * 255)}, 0, 0.8)`,
+                            dx: (Math.random() - 0.5) * 10,
+                            dy: (Math.random() - 0.5) * 10
+                        });
+                    }
+                    explosions.push({
+                        pixels: explosionPixels,
+                        lifetime: 30
+                    });
+
+                    // Inicia o efeito de piscar
+                    flashShip();
+                    loseHeart();
+                    enemies.splice(i, 1);
+                }
+            }
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (enemies[i].y > canvas.height - enemySize) {
+                    loseHeart();
+                    enemies.splice(i, 1);
+                }
+            }
+
+            for (let i = heartDrops.length - 1; i >= 0; i--) {
+                if (
+                    heartDrops[i].x < ship.x + shipWidth &&
+                    heartDrops[i].x + 20 > ship.x &&
+                    heartDrops[i].y < ship.y + shipHeight &&
+                    heartDrops[i].y + 20 > ship.y
+                ) {
+                    heartDrops.splice(i, 1);
+                    if (hearts < maxHearts) {
+                        hearts++;
+                        updateHeartsDisplay();
+                    }
+                }
+            }
+        }
+
+        function loseHeart() {
+            hearts--;
+            updateHeartsDisplay();
+            if (hearts <= 0) {
+                gameOver = true;
+                document.getElementById('finalScore').innerText = score;
+                document.getElementById('gameOverScreen').style.display = 'flex';
+                document.getElementById('gameCanvas').style.display = 'none';
+                return;
+            }
+        }
+
+        function updateHeartsDisplay() {
+            const heartsDiv = document.getElementById('hearts');
+            heartsDiv.innerHTML = '';
+            for (let i = 0; i < hearts; i++) {
+                heartsDiv.innerHTML += '<div class="heart"></div>';
+            }
+        }
+
+        function updateBombsDisplay() {
+            const bombsDiv = document.getElementById('bombs');
+            bombsDiv.innerHTML = '';
+            for (let i = 0; i < bombs; i++) {
+                bombsDiv.innerHTML += '<div class="bomb"></div>';
+            }
+        }
+
+        function flashShip() {
+            if (isFlashing) return;
+            isFlashing = true;
+            let flashCount = 0;
+            const flashInterval = setInterval(() => {
+                isFlashing = !isFlashing;
+                if (++flashCount >= 6) {
+                    clearInterval(flashInterval);
+                    isFlashing = false;
+                }
+            }, 100);
+        }
+
+        function useBomb() {
+            if (bombs > 0) {
+                bombs--;
+                updateBombsDisplay();
+                const enemyCount = enemies.length;
+                for (let i = 0; i < enemyCount; i++) {
+                    // Cria animação de explosão para cada inimigo
+                    const explosionPixels = [];
+                    for (let k = 0; k < 30; k++) {
+                        explosionPixels.push({
+                            x: enemies[i].x + (Math.random() * enemySize),
+                            y: enemies[i].y + (Math.random() * enemySize),
+                            size: Math.random() * 5 + 2,
+                            color: `rgba(255, ${Math.floor(Math.random() * 255)}, 0, 0.8)`,
+                            dx: (Math.random() - 0.5) * 10,
+                            dy: (Math.random() - 0.5) * 10
+                        });
+                    }
+                    explosions.push({
+                        pixels: explosionPixels,
+                        lifetime: 30
+                    });
+                }
+                enemies = []; // Remove todos os inimigos
+            }
+        }
+
+        function gameLoop() {
+            if (!gameOver) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawShip();
+                bullets.forEach(drawBullet);
+                enemies.forEach(drawEnemy);
+                heartDrops.forEach(drawHeartDrop);
+                explosions.forEach(drawExplosion);
+                drawBombs();
+                moveShip();
+                moveBullets();
+                createEnemy();
+                moveEnemies();
+                moveHeartDrops();
+                detectCollisions();
+
+                // Atualiza animação de explosão
+                explosions = explosions.map(explosion => {
+                    explosion.pixels.forEach(pixel => {
+                        pixel.x += pixel.dx;
+                        pixel.y += pixel.dy;
+                        pixel.size *= 0.9; // Encolhe os pixels
+                    });
+                    explosion.lifetime--;
+                    return explosion;
+                }).filter(explosion => explosion.lifetime > 0);
+
+                document.getElementById('score').innerText = `Score: ${score}`;
+                requestAnimationFrame(gameLoop);
+            } else {
+                explosions = []; // Limpar explosões ao terminar o jogo
+            }
+        }
+
+        function startGame() {
+            playerName = document.getElementById('playerName').value;
+            if (playerName.trim() === '') {
+                document.getElementById('startScreen').innerHTML += '<p style="color: red;">Por favor, digite seu nome.</p>';
+                return;
+            }
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            resizeCanvas();
+            updateHeartsDisplay();
+            updateBombsDisplay();
+            document.getElementById('score').innerText = `Score: ${score}`;
+            gameLoop();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            hearts = 5;
+            bombs = 3;
+            score = 0;
+            enemiesKilled = 0;
+            enemyLimit = 1;
+            gameOver = false;
+            heartDrops = [];
+            enemies = [];
+            bullets = [];
+            explosions = [];
+        }
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'b') {
+                useBomb();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                shootBullet();
+            }
+        });
+    </script>
+</body>
+</html>
