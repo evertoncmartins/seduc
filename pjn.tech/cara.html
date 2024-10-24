@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cara a Cara</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #4B0082; /* roxo */
+            color: #FFFFFF; /* branco */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 1.5em; /* tamanho reduzido */
+            color: #FFD700; /* dourado */
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 120px); /* tamanho reduzido */
+            grid-gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #2F2F2F; /* preto */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .character-card {
+            background-color: #333333; /* preto */
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 5px; /* tamanho reduzido */
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+            position: relative;
+            color: #FFFFFF; /* branco */
+        }
+
+        .character-card:hover {
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .eliminated {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 1em; /* tamanho reduzido */
+            color: #FFD700; /* dourado */
+        }
+
+        #controls {
+            margin-top: 20px;
+            background-color: #444444; /* preto */
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #controls input, #controls button {
+            margin: 5px;
+            padding: 5px; /* tamanho reduzido */
+            font-size: 0.9em; /* tamanho reduzido */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s;
+            color: #000; /* preto */
+        }
+
+        #controls input:focus, #controls button:hover {
+            border-color: #FFD700; /* dourado */
+        }
+
+        #controls button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        #controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #controls button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+
+        .emoji {
+            font-size: 40px; /* tamanho reduzido */
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .character-details {
+            font-size: 0.8em; /* tamanho reduzido */
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo Cara a Cara</h1>
+    <div id="game-board"></div>
+    <div id="message"></div>
+    <div id="controls">
+        <label for="question">Faça uma pergunta: </label>
+        <input type="text" id="question" placeholder="Exemplo: A pessoa tem óculos?">
+        <button id="ask-button">Perguntar</button>
+        <button id="guess-button">Adivinhar</button>
+        <div id="guess-section" class="hidden">
+            <label for="guess">Quem é a pessoa? </label>
+            <input type="text" id="guess" placeholder="Nome do personagem">
+            <button id="confirm-guess">Confirmar Adivinhação</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const characters = [
+                { name: "Malu Corbelli", glasses: true, hat: false, beard: false, gender: "menina", hairColor: "castanho", eyeColor: "castanho escuro", job: "recreação", emoji: "👩‍🦰" },
+                { name: "Erverton", glasses: true, hat: true, beard: true, gender: "homem", hairColor: "preto", eyeColor: "verde", job: "Professor", emoji: "👨‍🦰" },
+                { name: "Pedro", glasses: true, hat: false, beard: false, gender: "homem", hairColor: "castanho", eyeColor: "castanho escuro", job: "Artista", emoji: "🧔" },
+                { name: "Heloa", glasses: true, hat: true, beard: false, gender: "menina", hairColor: "castanho", eyeColor: "castanho claro", job: "Médica", emoji: "👩‍🦳" },
+                { name: "Pablo", glasses: true, hat: false, beard: false, gender: "homem", hairColor: "preto", eyeColor: "castanho escuro", job: "Programador", emoji: "👨‍🦳" },
+                { name: "Ariane", glasses: false, hat: false, beard: false, gender: "menina", hairColor: "preto", eyeColor: "castanho escuro", job: "Professora", emoji: "👩" },
+                { name: "Gustavo", glasses: false, hat: true, beard: true, gender: "homem", hairColor: "loiro", eyeColor: "azul", job: "Designer", emoji: "👨" },
+                { name: "Giovana", glasses: false, hat: false, beard: false, gender: "menina", hairColor: "loiro", eyeColor: "castanho escuro", job: "Fotógrafa", emoji: "👩‍🦰" },
+                { name: "Nicolli", glasses: true, hat: false, beard: false, gender: "menina", hairColor: "castanho", eyeColor: "castanho claro", job: "Cientista", emoji: "👧" },
+                { name: "Vitor", glasses: true, hat: true, beard: true, gender: "homem", hairColor: "preto", eyeColor: "castanho claro", job: "Advogado", emoji: "👨‍🎓" },
+                { name: "Juliane", glasses: false, hat: false, beard: false, gender: "menina", hairColor: "castanho", eyeColor: "castanho", job: "Arquitetura", emoji: "👩‍🔬" },
+                { name: "Miguel", glasses: true, hat: true, beard: true, gender: "homem", hairColor: "preto", eyeColor: "preto", job: "Cozinheiro", emoji: "🧑" },
+                { name: "Gabi", glasses: true, hat: false, beard: false, gender: "menina", hairColor: "loiro", eyeColor: "castanho claro", job: "Estudante", emoji: "👩‍🎨" },
+                { name: "Luan", glasses: false, hat: true, beard: true, gender: "homem", hairColor: "castanho", eyeColor: "verde", job: "Engenheiro", emoji: "🧑‍🏭" }
+            ];
+
+            let eliminatedCharacters = [];
+            const gameBoard = document.getElementById('game-board');
+            const messageDisplay = document.getElementById('message');
+            const questionInput = document.getElementById('question');
+            const askButton = document.getElementById('ask-button');
+            const guessButton = document.getElementById('guess-button');
+            const guessSection = document.getElementById('guess-section');
+            const confirmGuessButton = document.getElementById('confirm-guess');
+
+            let randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+
+            function createBoard() {
+                gameBoard.innerHTML = '';
+                characters.forEach(character => {
+                    const card = document.createElement('div');
+                    card.classList.add('character-card');
+                    card.innerHTML = `
+                        <div class="emoji">${character.emoji}</div>
+                        <div>${character.name}</div>
+                        <div class="character-details">
+                            <p>Gênero: ${character.gender}</p>
+                            <p>Cor do cabelo: ${character.hairColor}</p>
+                            <p>Cor do olho: ${character.eyeColor}</p>
+                            <p>Óculos: ${character.glasses ? 'Sim' : 'Não'}</p>
+                            <p>Chapéu: ${character.hat ? 'Sim' : 'Não'}</p>
+                            <p>Profissão: ${character.job}</p>
+                        </div>
+                    `;
+                    if (eliminatedCharacters.includes(character.name)) {
+                        card.classList.add('eliminated');
+                    }
+                    gameBoard.appendChild(card);
+                });
+            }
+
+            function displayMessage(message) {
+                messageDisplay.textContent = message;
+            }
+
+            function askQuestion() {
+                const question = questionInput.value.toLowerCase();
+                questionInput.value = '';
+
+                if (question.includes("cabelo") || question.includes("cor do cabelo")) {
+                    displayMessage(`O personagem tem cabelo ${randomCharacter.hairColor}.`);
+                } else if (question.includes("olho") || question.includes("cor do olho")) {
+                    displayMessage(`O personagem tem olhos ${randomCharacter.eyeColor}.`);
+                } else if (question.includes("gênero") || question.includes("menina") || question.includes("menino")) {
+                    displayMessage(`O personagem é ${randomCharacter.gender}.`);
+                } else if (question.includes("chapeu") || question.includes("usa chapeu") || question.includes("tem chapeu")) {
+                    displayMessage(`O personagem ${randomCharacter.hat ? "usa" : "não usa"} chapéu.`);
+                } else if (question.includes("óculos") || question.includes("usa óculos") || question.includes("tem óculos")) {
+                    displayMessage(`O personagem ${randomCharacter.glasses ? "usa" : "não usa"} óculos.`);
+                } else if (question.includes("profissão") || question.includes("qual a profissão")) {
+                    displayMessage(`A profissão do personagem é ${randomCharacter.job}.`);
+                } else {
+                    displayMessage("Pergunta inválida! Tente outra.");
+                }
+            }
+
+            function makeGuess() {
+                guessSection.classList.remove('hidden');
+                displayMessage("Digite o nome do personagem e clique em 'Confirmar Adivinhação'.");
+            }
+
+            function confirmGuess() {
+                const guess = document.getElementById('guess').value.toLowerCase();
+                if (guess === randomCharacter.name.toLowerCase()) {
+                    displayMessage(`Parabéns! Você adivinhou que a pessoa é ${randomCharacter.name}.`);
+                } else {
+                    displayMessage(`Errou! A pessoa era ${randomCharacter.name}.`);
+                }
+                resetGame();
+            }
+
+            function eliminateCharacter(name) {
+                eliminatedCharacters.push(name);
+                createBoard();
+                displayMessage(`${name} foi eliminado.`);
+            }
+
+            function resetGame() {
+                randomCharacter = characters[Math.floor(Math.random() * characters.length)];
+                eliminatedCharacters = [];
+                createBoard();
+                displayMessage('Jogo reiniciado. Faça uma pergunta!');
+            }
+
+            askButton.addEventListener('click', askQuestion);
+            guessButton.addEventListener('click', makeGuess);
+            confirmGuessButton.addEventListener('click', confirmGuess);
+
+            // Adicionando evento de clique em cada cartão para eliminar o personagem
+            gameBoard.addEventListener('click', (event) => {
+                const card = event.target.closest('.character-card');
+                if (card) {
+                    const name = card.querySelector('div:nth-child(2)').textContent;
+                    eliminateCharacter(name);
+                }
+            });
+
+            createBoard();
+        });
+    </script>
+</body>
+</html>
