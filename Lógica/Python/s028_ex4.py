@@ -1,9 +1,9 @@
 import random
 
 # Geração do tabuleiro 3x3 com todos os elementos como 1, exceto um zero em posição aleatória
-tabuleiro = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-zero_x, zero_y = random.randint(0, 2), random.randint(0, 2)
-tabuleiro[zero_x][zero_y] = 0
+tabuleiro = [[1 for _ in range(3)] for _ in range(3)]
+zero_linha, zero_coluna = random.randint(0, 2), random.randint(0, 2)
+tabuleiro[zero_linha][zero_coluna] = 0
 
 # Contador de tentativas
 tentativas = 0
@@ -17,11 +17,16 @@ while not encontrou_zero:
     print()
 
     # Entrada do jogador
-    x = int(input("Escolha uma linha (0-2): "))
-    y = int(input("Escolha uma coluna (0-2): "))
+    linha = int(input("Escolha uma linha (0-2): "))
+    coluna = int(input("Escolha uma coluna (0-2): "))
+
+    # Verifica se a entrada está dentro dos limites
+    if linha not in range(3) or coluna not in range(3):
+        print("Posição inválida. Escolha números entre 0 e 2.")
+        continue
 
     # Verifica se encontrou o zero
-    if x == zero_x and y == zero_y:
+    if linha == zero_linha and coluna == zero_coluna:
         print("Parabéns! Você encontrou o zero!")
         encontrou_zero = True
     else:
