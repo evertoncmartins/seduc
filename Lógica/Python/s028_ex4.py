@@ -1,3 +1,5 @@
+# Descrição do jogo: Caça ao Zero é um jogo extremamente simples baseado em matrizes, no qual o jogador deve encontrar a posição de um zero em uma matriz 3x3. O tabuleiro contém apenas um zero e o restante dos espaços é preenchido com 1.
+
 import random
 
 # Geração do tabuleiro 3x3 com todos os elementos como 1, exceto um zero em posição aleatória
