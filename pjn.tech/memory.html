@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memoria jogo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #111;
+            color: #fff;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        #start-screen, #difficulty-screen, #win-screen {
+            text-align: center;
+            background-color: #222;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 6px 15px rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        #start-screen.active, #difficulty-screen.active, #win-screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-board {
+            display: none;
+            grid-gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 2em;
+            color: white;
+            transition: transform 0.3s, background-color 0.5s;
+            border-radius: 10px;
+        }
+
+        .card:hover {
+            transform: scale(1.1);
+        }
+
+        .card.flipped {
+            background-color: #fff;
+            color: #000;
+            cursor: default;
+        }
+
+        .card.error {
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px); }
+            50% { transform: translate(5px); }
+            75% { transform: translate(-5px); }
+            100% { transform: translate(0); }
+        }
+
+        .btn {
+            width: 6.5em;
+            height: 2.3em;
+            margin: 0.5em;
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 0.625em;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            color: black;
+        }
+
+        .btn:after {
+            content: "";
+            background: white;
+            position: absolute;
+            z-index: -1;
+            left: -20%;
+            right: -20%;
+            top: 0;
+            bottom: 0;
+            transform: skewX(-45deg) scale(0, 1);
+            transition: all 0.5s;
+        }
+
+        .btn:hover:after {
+            transform: skewX(-45deg) scale(1, 1);
+            -webkit-transition: all 0.5s;
+            transition: all 0.5s;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #reset {
+            margin-top: 20px;
+        }
+
+        #final-time {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        #attempts {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #fff;
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="active">
+        <h1>Bem-Vindo ao Jogo da Memória</h1>
+        <button class="btn" onclick="goToDifficultyScreen()">Jogar</button>
+    </div>
+
+    <div id="difficulty-screen">
+        <h1>Escolha a dificuldade</h1>
+        <button class="btn" onclick="setLevel('facil')">Fácil</button>
+        <button class="btn" onclick="setLevel('medio')">Médio</button>
+        <button class="btn" onclick="setLevel('dificil')">Difícil</button>
+    </div>
+
+    <div id="game-container">
+        <div id="attempts">Tentativas: 0</div>
+        <div id="game-board"></div>
+        <button id="reset" class="btn" onclick="createBoard()" style="display:none;">Reiniciar Jogo</button>
+    </div>
+
+    <div id="win-screen">
+        <h1>Parabéns! Você venceu!</h1>
+        <div id="final-time"></div>
+        <button id="play-again" class="btn" onclick="showStartScreen()">Continuar</button>
+    </div>
+
+    <audio id="match-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+    <audio id="flip-sound" src="https://www.soundjay.com/button/sounds/button-15.mp3"></audio>
+
+    <script>
+        let level = 'facil';
+        let cardValues = [];
+        let cards = [];
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let matchedPairs = 0;
+        let attempts = 0;
+
+        const gameBoard = document.getElementById('game-board');
+        const winScreen = document.getElementById('win-screen');
+        const matchSound = document.getElementById('match-sound');
+        const flipSound = document.getElementById('flip-sound');
+        const startScreen = document.getElementById('start-screen');
+        const difficultyScreen = document.getElementById('difficulty-screen');
+        const resetButton = document.getElementById('reset');
+        const finalTimeDisplay = document.getElementById('final-time');
+        const attemptsDisplay = document.getElementById('attempts');
+
+        function goToDifficultyScreen() {
+            startScreen.classList.remove('active');
+            difficultyScreen.classList.add('active');
+        }
+
+        function setLevel(newLevel) {
+            level = newLevel;
+            switch (level) {
+                case 'facil':
+                    cardValues = ['🍎', '🍊'];
+                    gameBoard.style.gridTemplateColumns = 'repeat(2, 100px)';
+                    break;
+                case 'medio':
+                    cardValues = ['🍎', '🍊', '🍋', '🍉', '🍇', '🍓', '🍒', '🍍'];
+                    gameBoard.style.gridTemplateColumns = 'repeat(4, 100px)';
+                    break;
+                case 'dificil':
+                    cardValues = ['🍎', '🍊', '🍋', '🍉', '🍇', '🍓', '🍒', '🍍', '🥭', '🍑', '🥝', '🍐', '🍌', '🥥', '🍏', '🍈', '🌮', '🌯', '🌰', '🌱'];
+                    gameBoard.style.gridTemplateColumns = 'repeat(8, 100px)';
+                    break;
+            }
+            cards = [...cardValues, ...cardValues];
+            startGame();
+        }
+
+        function startGame() {
+            attempts = 0;
+            attemptsDisplay.textContent = `Tentativas: ${attempts}`;
+            attemptsDisplay.style.display = 'block';
+            difficultyScreen.classList.remove('active');
+            gameBoard.style.display = 'grid';
+            resetButton.style.display = 'block';
+            createBoard();
+        }
+
+        function shuffleCards() {
+            cards = cards.sort(() => 0.5 - Math.random());
+        }
+
+        function createBoard() {
+            shuffleCards();
+            gameBoard.innerHTML = '';
+            matchedPairs = 0;
+            cards.forEach((value) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.value = value;
+                card.addEventListener('click', flipCard);
+                gameBoard.appendChild(card);
+            });
+            winScreen.classList.remove('active');
+            revealCardsSequentially();
+        }
+
+        function revealCardsSequentially() {
+            const allCards = document.querySelectorAll('.card');
+            let delay = 0;
+            allCards.forEach(card => {
+                setTimeout(() => {
+                    card.classList.add('flipped');
+                    card.textContent = card.dataset.value;
+                }, delay);
+                delay += 150; // Atraso de 150ms entre cada carta
+            });
+
+            setTimeout(() => {
+                allCards.forEach(card => {
+                    card.classList.remove('flipped');
+                    card.textContent = '';
+                });
+            }, delay + 500); // Esconde as cartas após todas terem sido mostradas
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+
+            this.classList.add('flipped');
+            this.textContent = this.dataset.value;
+            flipSound.play();
+
+            if (!firstCard) {
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            lockBoard = true;
+            checkMatch();
+        }
+
+        function checkMatch() {
+            attempts++;
+            attemptsDisplay.textContent = `Tentativas: ${attempts}`;
+            if (firstCard.dataset.value === secondCard.dataset.value) {
+                disableCards();
+            } else {
+                unflipCards();
+                showErrorAnimation();
+            }
+        }
+
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            matchSound.play();
+            matchedPairs++;
+            resetBoard();
+            checkWin();
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                firstCard.textContent = '';
+                secondCard.classList.remove('flipped');
+                secondCard.textContent = '';
+                resetBoard();
+            }, 1000);
+        }
+
+        function showErrorAnimation() {
+            firstCard.classList.add('error');
+            secondCard.classList.add('error');
+            setTimeout(() => {
+                firstCard.classList.remove('error');
+                secondCard.classList.remove('error');
+            }, 500);
+        }
+
+        function resetBoard() {
+            [firstCard, secondCard, lockBoard] = [null, null, false];
+        }
+
+        function checkWin() {
+            if (matchedPairs === cardValues.length) {
+                winScreen.classList.add('active');
+                gameBoard.style.display = 'none';
+                resetButton.style.display = 'none';
+                attemptsDisplay.style.display = 'none';
+                finalTimeDisplay.textContent = `Você venceu em ${attempts} tentativas!`;
+            }
+        }
+
+        function showStartScreen() {
+            winScreen.classList.remove('active');
+            startScreen.classList.add('active');
+            gameBoard.style.display = 'none';
+            resetButton.style.display = 'none';
+            attemptsDisplay.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
