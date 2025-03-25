@@ -34,10 +34,20 @@ INSERT INTO transacoes (cliente_id, valor, data_transacao) VALUES
 
 
 -- Acessar banco de dados
+C:\Program Files\MySQL\MySQL Server 8.0\bin
 mysql -u root -p
 
--- Backup Completo (Full Backup)
-mysqldump -u root -p TechSecureDB > C:\TechSecureDB_bck.sql
+-- Backup Completo (Full Backup) - Sem estar no mysql
+mysqldump -u root -p TechSecureDB > C:\Users\ecmdi\Downloads\TechSecureDB_bck.sql
+
+-- Recuperação do Backup Completo
+mysql -u root -p -e "CREATE DATABASE TechSecureDB"
+mysql -u root -p TechSecureDB < C:\Users\ecmdi\Downloads\TechSecureDB_bck.sql
+
+-- Verificação
+USE TechSecureDB;
+SELECT * FROM clientes;
+SELECT * FROM transacoes;
 
 
 
@@ -57,37 +67,14 @@ net start MySQL
 SHOW VARIABLES LIKE 'log_bin';
 
 
-
 -- Backup Incremental
 -- Passo 1: Identifique o arquivo de log atual
 SHOW MASTER STATUS;
 
 -- Passo 2: Execute o backup incremental
-mysqlbinlog --start-datetime="2023-01-17 00:00:00" /var/log/mysql/mysql-bin.000002 > incremental_backup_$(date +%Y%m%d).sql
+mysqlbinlog --start-datetime="2023-01-17 00:00:00" /var/log/mysql/mysql-bin.000002 > C:\Users\ecmdi\Downloads\TechSecureDB.sql
 
-
-
--- Backup Diferencial
-mysqldump -u root -p --single-transaction --flush-logs --master-data=2 TechSecureDB > differential_backup_$(date +%Y%m%d).sql
-
-
-
--- Cenário de Desastre (Simulação)
--- Simula perda de dados
-DROP DATABASE TechSecureDB;
-
--- Recuperação do Backup Completo
-mysql -u root -p -e "CREATE DATABASE TechSecureDB"
-mysql -u root -p TechSecureDB < full_backup_20230117.sql
-
--- Verificação
-USE TechSecureDB;
-SELECT * FROM clientes;
-SELECT * FROM transacoes;
-
-
-
--- Aplicação de Backup Incremental
+-- Restauração do Backup Incremental
 mysql -u root -p TechSecureDB < incremental_backup_20230118.sql
 
 -- Verificação
@@ -96,7 +83,10 @@ SELECT MAX(data_transacao) FROM transacoes;
 
 
 
--- Aplicação de Backup Diferencial
+-- Backup Diferencial
+mysqldump -u root -p --single-transaction --flush-logs --master-data=2 TechSecureDB > differential_backup_$(date +%Y%m%d).sql
+
+-- Restauração do Backup Diferencial
 mysql -u root -p TechSecureDB < differential_backup_20230119.sql
 
 -- Verificação
