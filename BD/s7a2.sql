@@ -33,9 +33,11 @@ INSERT INTO transacoes (cliente_id, valor, data_transacao) VALUES
 (3, 99.90, '2023-01-17');
 
 
+-- Acessar banco de dados
+mysql -u root -p
 
 -- Backup Completo (Full Backup)
-mysqldump -u root -p TechSecureDB > full_backup_$(date +%Y%m%d).sql
+mysqldump -u root -p TechSecureDB > C:\TechSecureDB_bck.sql
 
 
 
