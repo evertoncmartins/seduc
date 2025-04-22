@@ -1,17 +1,18 @@
+# Classe que representa um contador com valor privado
 class Contador:
     def __init__(self):
-        self.__valor = 0
+        self.__valor = 0  # Atributo privado, não acessível diretamente
 
     def incrementar(self):
-        self.__valor += 1
+        self.__valor += 1  # Adiciona 1 ao valor
 
     def decrementar(self):
-        self.__valor -= 1
+        self.__valor -= 1  # Subtrai 1 do valor
 
     def get_valor(self):
-        return self.__valor
+        return self.__valor  # Retorna o valor atual
 
-# Uso da classe
+# Criando um contador
 contador = Contador()
 
 contador.incrementar()
