@@ -49,7 +49,16 @@ INSERT INTO vendas (id_venda, id_produto, quantidade, data_venda) VALUES
 SELECT p.nome, SUM(v.quantidade) AS total_vendidos
 FROM produtos p
 JOIN vendas v ON p.id_produto = v.id_produto
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+GROUP BY p.nome
+ORDER BY total_vendidos DESC
+LIMIT 1;
+
+SELECT p.nome, SUM(v.quantidade) AS total_vendidos
+FROM produtos p
+JOIN vendas v ON p.id_produto = v.id_produto
+WHERE v.data_venda BETWEEN '2025-01-01' AND '2025-03-31'
 GROUP BY p.nome
 ORDER BY total_vendidos DESC
 LIMIT 1;
@@ -67,25 +76,29 @@ LIMIT 1;
 -- 3️⃣ Qual foi a média de produtos vendidos por pedido nos últimos três meses?
 SELECT AVG(v.quantidade) AS media_por_pedido
 FROM vendas v
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH);
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 4️⃣ Qual foi o valor da venda mais alta nos últimos três meses?
 SELECT MAX(v.quantidade * p.preco) AS maior_venda
 FROM vendas v
 JOIN produtos p ON v.id_produto = p.id_produto
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH);
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 5️⃣ Qual foi o valor da venda mais baixa nos últimos três meses?
 SELECT MIN(v.quantidade * p.preco) AS menor_venda
 FROM vendas v
 JOIN produtos p ON v.id_produto = p.id_produto
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH);
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 6️⃣ Qual categoria teve a maior quantidade de produtos vendidos nos últimos três meses?
 SELECT p.categoria, SUM(v.quantidade) AS total_quantidade
 FROM produtos p
 JOIN vendas v ON p.id_produto = v.id_produto
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY p.categoria
 ORDER BY total_quantidade DESC
 LIMIT 1;
@@ -98,6 +111,7 @@ SELECT
     SUM(v.quantidade * p.preco) AS faturamento_mensal
 FROM produtos p
 JOIN vendas v ON p.id_produto = p.id_produto
-WHERE v.data_venda >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
+                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY p.categoria, mes
 ORDER BY mes, p.categoria;
