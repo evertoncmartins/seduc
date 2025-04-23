@@ -33,7 +33,7 @@ INSERT INTO vendas VALUES
 -- 1️⃣ Quantas vendas foram realizadas no mês passado?
 SELECT COUNT(*) AS total_vendas
 FROM vendas
-WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) 
+WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 2️⃣ Qual foi o valor total de vendas de cada produto?
@@ -51,25 +51,25 @@ LIMIT 1;
 -- 4️⃣ Qual foi o valor médio das vendas por dia no mês passado?
 SELECT data_venda, AVG(quantidade * valor_unitario) AS media_diaria
 FROM vendas
-WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) 
-                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
+                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 GROUP BY data_venda;
 
 -- 5️⃣ Qual foi a venda de maior valor no mês passado?
 SELECT MAX(quantidade * valor_unitario) AS maior_valor
 FROM vendas
-WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) 
+WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 6️⃣ Qual foi a venda de menor valor no mês passado?
 SELECT MIN(quantidade * valor_unitario) AS menor_valor
 FROM vendas
-WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) 
+WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
                      AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
 -- 💡 Desafio adicional: valor médio da venda por dia para cada produto
 SELECT produto, data_venda, AVG(quantidade * valor_unitario) AS media_por_dia
 FROM vendas
-WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) 
-                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
+                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 GROUP BY produto, data_venda;

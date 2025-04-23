@@ -58,7 +58,7 @@ LIMIT 1;
 SELECT p.categoria, SUM(v.quantidade * p.preco) AS total_vendas
 FROM produtos p
 JOIN vendas v ON p.id_produto = v.id_produto
-WHERE v.data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
                       AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY p.categoria;
 
