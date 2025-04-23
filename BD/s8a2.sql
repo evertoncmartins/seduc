@@ -64,14 +64,13 @@ ORDER BY total_vendidos DESC
 LIMIT 1;
 
 -- 2️⃣ Qual foi o valor total de vendas por categoria no mês passado?
-SELECT p.nome, SUM(v.quantidade) AS total_vendidos
+SELECT p.categoria, SUM(p.preco * v.quantidade) AS total_vendidos
 FROM produtos p
 JOIN vendas v ON p.id_produto = v.id_produto
 WHERE v.data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01')
                       AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-GROUP BY p.nome
-ORDER BY total_vendidos DESC
-LIMIT 1;
+GROUP BY p.categoria
+ORDER BY total_vendidos DESC;
 
 -- 3️⃣ Qual foi a média de produtos vendidos por pedido nos últimos três meses?
 SELECT AVG(v.quantidade) AS media_por_pedido
