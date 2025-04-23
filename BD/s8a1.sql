@@ -52,7 +52,7 @@ LIMIT 1;
 SELECT data_venda, AVG(quantidade * valor_unitario) AS media_diaria
 FROM vendas
 WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
+                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY data_venda;
 
 -- 5️⃣ Qual foi a venda de maior valor no mês passado?
@@ -71,5 +71,5 @@ WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-
 SELECT produto, data_venda, AVG(quantidade * valor_unitario) AS media_por_dia
 FROM vendas
 WHERE data_venda BETWEEN DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
+                     AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY produto, data_venda;
