@@ -35,7 +35,7 @@ INSERT INTO produtos (nome_produto, preco, estoque) VALUES
 
 -- PASSO 2 – Fazer backup completo com mysqldump
 -- > Acessar a pasta: 
-cd C:\Program Files\MySQL\MySQL Server 8.0\bin>
+cd C:\Program Files\MySQL\MySQL Server 8.0\bin
 
 mysqldump -u root -p empresa_dados > C:\BD\backup_empresa_dados.sql
 
@@ -57,7 +57,7 @@ DROP DATABASE empresa_dados; -- apagar o banco de dados
 cd C:\Program Files\MySQL\MySQL Server 8.0\bin>
 
 CREATE DATABASE empresa_dados;
-mysql -u root -p empresa_dados < C:\BD\bkp.sql
+mysql -u root -p empresa_dados < C:\BD\backup_empresa_dados.sql
 
 -- ✅ PASSO 5 – Verificar a restauração
 USE empresa_dados;
