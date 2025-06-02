@@ -36,6 +36,8 @@ INSERT INTO pedidos (id_cliente, data_pedido, status) VALUES
 (2, '2024-04-02', 'Pendente'),
 (3, '2024-04-10', 'Cancelado');
 
+
+
 -- 🔁 2. Trigger: Exclusão automática de pedidos ao remover cliente
 DELIMITER $$
 
@@ -49,11 +51,19 @@ END$$
 DELIMITER ;
 
 -- ✅ Teste:
+-- Desativa temporariamente as verificações de chaves estrangeiras
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- Deleta o cliente João Silva (id = 1)
 DELETE FROM clientes WHERE id_cliente = 1;
 
 -- Verifica se os pedidos dele foram excluídos
 SELECT * FROM pedidos;
+
+-- Reativa as verificações depois da demonstração
+SET FOREIGN_KEY_CHECKS = 1;
+
+
 
 -- 📋 3. Trigger: Auditoria de atualizações em pedidos
 CREATE TABLE auditoria_pedidos (
@@ -82,6 +92,7 @@ UPDATE pedidos SET status = 'Enviado' WHERE id_pedido = 3;
 SELECT * FROM auditoria_pedidos;
 
 
+
 -- ⛔ 4. Trigger: Impedir exclusão de pedidos com status "Enviado"
 DELIMITER $$
 
@@ -101,6 +112,8 @@ DELIMITER ;
 -- Tentar excluir um pedido com status "Enviado"
 DELETE FROM pedidos WHERE id_pedido = 3;
 -- Deve exibir erro impedindo a exclusão
+
+
 
 -- 💡 5. Trigger criativa: Log de novos clientes
 CREATE TABLE log_novos_clientes (
