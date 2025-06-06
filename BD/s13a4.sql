@@ -148,5 +148,4 @@ SELECT * FROM log_novos_clientes;
 - Como cada trigger funciona
 - Os efeitos automáticos após determinadas ações
 - Como manter a integridade dos dados com facilidade
-- Se desejar, posso converter todo esse material em PDF formatado para aula ou mesmo gerar um script .sql completo para importar direto no MySQL. Deseja isso?
 */
