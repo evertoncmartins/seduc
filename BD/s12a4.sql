@@ -104,4 +104,4 @@ Quais desafios podem surgir ao remover colunas que podem estar sendo usadas em o
 - Analisar onde essa coluna está sendo usada.
 - Falar com os responsáveis pelo sistema.
 - Testar a remoção com cuidado em ambiente de teste.
-*/
+*/---
