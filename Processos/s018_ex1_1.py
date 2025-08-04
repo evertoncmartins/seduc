@@ -1,13 +1,12 @@
 class Perfil(object):
 
-    def __init__(self, nome, telefone, empresa):
+    def __init__(self, nome, telefone):
         self.nome = nome
         self.telefone = telefone
-        self.empresa = empresa
         self.__curtidas = 0  # atributo privado (não pode ser acessado diretamente)
 
     def imprimir(self):
-        print("Nome : %s, Telefone: %s, Empresa: %s" % (self.nome, self.telefone, self.empresa))
+        print(f"Nome : {self.nome}, Telefone: {self.telefone}")
 
     def curtir(self):
         # Só esse método pode alterar o valor de __curtidas
@@ -17,7 +16,7 @@ class Perfil(object):
         # Método para acessar o valor atual de curtidas
         return self.__curtidas
 
-perfil = Perfil('Flávio Almeida', 'não informado', 'Caelum')
+perfil = Perfil('Flávio Almeida', 'não informado')
 
 # Damos duas curtidas usando o método correto
 perfil.curtir()

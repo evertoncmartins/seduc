@@ -1,18 +1,17 @@
 class Perfil(object):
 
-    def __init__(self, nome, telefone, empresa):
+    def __init__(self, nome, telefone):
         # Atributos públicos (acessíveis diretamente)
         self.nome = nome
         self.telefone = telefone
-        self.empresa = empresa
         self.curtidas = 0  # qualquer um pode alterar esse valor diretamente
 
     def imprimir(self):
         # Imprime as informações do perfil
-        print("Nome : %s, Telefone: %s, Empresa: %s" % (self.nome, self.telefone, self.empresa))
+        print(f"Nome : {self.nome}, Telefone: {self.telefone}")
 
 # Criamos um perfil normalmente
-perfil = Perfil('Flávio Almeida', 'não informado', 'Caelum')
+perfil = Perfil('Flávio Almeida', 'não informado')
 
 # Valor inicial das curtidas é zero
 print(perfil.curtidas)  # Saída: 0
