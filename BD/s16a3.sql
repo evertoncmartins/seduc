@@ -6,13 +6,14 @@
 -- Durabilidade: Garante que, uma vez que uma transação é confirmada (COMMIT), suas alterações persistem permanentemente, mesmo em caso de falha do sistema.
 --
 --🔸PARTE 2 - Implementação prática.
--- A primeira etapa é criar um banco de dados para a empresa FastTech e selecioná-lo.
+--
+-- Etapa 1 é criar um banco de dados para a empresa FastTech e selecioná-lo.
 -- Geralmente, o comando CREATE DATABASE não é parte de uma transação, pois ele define a estrutura básica.
 CREATE DATABASE fasttech;
 
 USE fasttech;
 
--- Segunda parte: Implementação de controle de transações
+-- Etapa 2: Implementação de controle de transações
 -- O próximo passo é criar a tabela `pedidos` conforme especificado no anexo.
 -- Esta tabela armazenará os pedidos da plataforma de vendas online.
 -- Note a definição de colunas, tipos de dados e a chave primária.
@@ -64,7 +65,7 @@ COMMIT;
    SELECT *
      FROM pedidos;
 
--- Parte 3: Simulação de falha e recuperação de dados
+-- Etapa 3: Simulação de falha e recuperação de dados
 -- A seguir, simulamos uma falha no meio de uma transação para demonstrar
 -- como o banco de dados reage e como o ROLLBACK é essencial para a recuperação.
 -- A transação começa com START TRANSACTION.
