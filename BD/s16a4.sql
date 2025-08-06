@@ -5,13 +5,13 @@ USE fasttech_db;
 
 -- Passo 2: Criar tabelas
    CREATE TABLE IF NOT EXISTS clientes (
-          id INT AUTO_INCREMENT PRIMARY KEY,
+          id_cliente INT AUTO_INCREMENT PRIMARY KEY,
           nome VARCHAR(100),
           email VARCHAR(100)
           );
 
    CREATE TABLE IF NOT EXISTS produtos (
-          id INT AUTO_INCREMENT PRIMARY KEY,
+          id_produto INT AUTO_INCREMENT PRIMARY KEY,
           nome VARCHAR(100),
           preco DECIMAL(10, 2)
           );
@@ -22,8 +22,8 @@ USE fasttech_db;
           id_produto INT,
           data_venda DATE,
           quantidade INT,
-          FOREIGN KEY (id_cliente) REFERENCES clientes (id),
-          FOREIGN KEY (id_produto) REFERENCES produtos (id)
+          FOREIGN KEY (id_cliente) REFERENCES clientes (id_cliente),
+          FOREIGN KEY (id_produto) REFERENCES produtos (id_produto)
           );
 
 -- Passo 3: Inserir dados
@@ -54,8 +54,8 @@ CREATE
                     v.data_venda,
                     v.quantidade
                FROM vendas v
-               JOIN clientes c ON v.id_cliente = c.id
-               JOIN produtos p ON v.id_produto = p.id;
+               JOIN clientes c ON v.id_cliente = c.id_cliente
+               JOIN produtos p ON v.id_produto = p.id_produto;
 
 -- Passo 5: Consulta à vista
    SELECT *
@@ -74,8 +74,8 @@ CREATE
           v.quantidade,
           p.preco
      FROM vendas v
-     JOIN clientes c ON v.id_cliente = c.id
-     JOIN produtos p ON v.id_produto = p.id
+     JOIN clientes c ON v.id_cliente = c.id_cliente
+     JOIN produtos p ON v.id_produto = p.id_produto
     WHERE p.preco > 100;
 
 -- Passo 8: Consulta à vista materializada
@@ -92,6 +92,6 @@ CREATE
           v.quantidade,
           p.preco
      FROM vendas v
-     JOIN clientes c ON v.id_cliente = c.id
-     JOIN produtos p ON v.id_produto = p.id
+     JOIN clientes c ON v.id_cliente = c.id_cliente
+     JOIN produtos p ON v.id_produto = p.id_produto
     WHERE p.preco > 100;
