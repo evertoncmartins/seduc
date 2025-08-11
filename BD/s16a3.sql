@@ -1,8 +1,11 @@
---🔸PARTE 1: Revisão das propriedades ACID (teórica, não há código)
--- Esta parte exige uma explicação teórica, mas vamos traduzir para comentários no código para referência.
+--🔸PARTE 1: Revisão das propriedades ACID
+
 -- Atomicidade: Garante que uma transação seja tratada como uma única operação. Ou ela é totalmente executada (COMMIT) ou totalmente desfeita (ROLLBACK). Não há estado parcial.
+
 -- Consistência: Garante que a transação leve o banco de dados de um estado válido para outro.
+
 -- Isolamento: Garante que a execução de uma transação não seja visível para outras transações concorrentes até que ela seja concluída. É como se cada transação estivesse sendo executada sozinha.
+
 -- Durabilidade: Garante que, uma vez que uma transação é confirmada (COMMIT), suas alterações persistem permanentemente, mesmo em caso de falha do sistema.
 --
 --🔸PARTE 2 - Implementação prática.
