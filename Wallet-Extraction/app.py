@@ -1,45 +1,30 @@
 import re
-import json
 import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pdfplumber
+from pdf2image import convert_from_bytes
+import pytesseract
 
 # Inicializa o aplicativo Flask
 app = Flask(__name__)
-# Habilita o CORS para permitir requisições do front-end
-CORS(app) 
+CORS(app)
 
-def find_next_value(text_lines, keyword, after_line=0):
-    """
-    Função auxiliar para encontrar um valor logo após uma palavra-chave.
-    """
-    for i in range(after_line, len(text_lines)):
-        if keyword in text_lines[i]:
-            parts = text_lines[i].split(keyword)
-            if len(parts) > 1:
-                # Tenta encontrar o valor na mesma linha
-                value = re.search(r'([\d,\.]+)', parts[1])
-                if value:
-                    return value.group(1), i
-            # Se não encontrou, tenta a próxima linha
-            if i + 1 < len(text_lines):
-                value = re.search(r'([\d,\.]+)', text_lines[i+1])
-                if value:
-                    return value.group(1), i + 1
-    return None, -1
+# Caminho do Poppler no Windows (preencha se usar OCR no Windows)
+# Exemplo: r"C:\poppler-xx\Library\bin"
+POPPLER_PATH = None
 
-def extract_data_from_brokerage_note(text):
-    """
-    Extrai informações de uma nota de corretagem em texto usando uma abordagem mais robusta.
-    
-    Args:
-        text (str): O conteúdo da nota de corretagem em formato de string.
-        
-    Returns:
-        dict: Um dicionário com os dados extraídos.
-    """
-    extracted_data = {
+# -------- OCR --------
+def extract_text_with_ocr(file_bytes):
+    pages = convert_from_bytes(file_bytes, poppler_path=POPPLER_PATH)
+    text = ""
+    for page in pages:
+        text += pytesseract.image_to_string(page, lang='por')
+    return text
+
+# -------- Parser --------
+def extract_data_from_brokerage_note(text: str):
+    data = {
         'Data da Operação': 'Não encontrado',
         'Corretora': 'Não encontrado',
         'Operação': 'Não encontrado',
@@ -50,72 +35,136 @@ def extract_data_from_brokerage_note(text):
         'IRRF': 'Não encontrado'
     }
 
-    text_lines = [line.strip() for line in text.split('\n') if line.strip()]
-    normalized_text = " ".join(text_lines)
+    # Quebra em linhas e também cria uma versão "flat"
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    flat = " ".join(lines)
 
-    # Extração de Data da Operação
-    data_match = re.search(r'Data pregão\s*(\d{2}/\d{2}/\d{4})', normalized_text)
-    if data_match:
-        extracted_data['Data da Operação'] = data_match.group(1).strip()
+    # --- Data ---
+    m = re.search(r'(?:Preg[aã]o|Data)\D*(\d{2}/\d{2}/\d{4})', flat, re.IGNORECASE)
+    if not m:
+        m = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', flat)
+    if m:
+        data['Data da Operação'] = m.group(1)
 
-    # Extração de Corretora
-    corretora_match = re.search(r'(XP INVESTIMENTOS CORRETORA|CLEAR CORRETORA)', normalized_text, re.IGNORECASE)
-    if corretora_match:
-        corretora = corretora_match.group(1).strip()
-        extracted_data['Corretora'] = 'XP Investimentos' if 'xp' in corretora.lower() else 'Clear Corretora'
+    # --- Corretora ---
+    m = re.search(r'(XP INVESTIMENTOS|CLEAR CORRETORA|NU INVEST|MODALMAIS)', flat, re.IGNORECASE)
+    if m:
+        data['Corretora'] = m.group(1).title()
 
-    # Extração de Operação, Ativo, Quantidade e Valor Unitário
-    negociacao_pattern = re.compile(r'"I-BOVESPA"\s*,\s*"(?P<op>[C|V])"\s*,\s*"VISTA"\s*,\s*,\s*"(?P<ativo>.*?CLES)"\s*,\s*,\s*"(?P<quantidade>\d+)"\s*,\s*"(?P<preco>[\d,]+)"', re.IGNORECASE)
-    negociacao_match = negociacao_pattern.search(normalized_text)
-    if negociacao_match:
-        extracted_data['Operação'] = 'Compra' if negociacao_match.group('op') == 'C' else 'Venda'
-        extracted_data['Ativo (Ticker)'] = 'GGRC11 (FII)'  # Hardcoded com base no documento de exemplo
-        extracted_data['Quantidade'] = negociacao_match.group('quantidade')
-        extracted_data['Valor Unitário'] = f"R$ {negociacao_match.group('preco')}"
+    # --- Operação (COMPRA/VENDA ou C/V) ---
+    m = re.search(r'\b(COMPRA|VENDA)\b', flat, re.IGNORECASE)
+    if m:
+        data['Operação'] = m.group(1).capitalize()
+    else:
+        m = re.search(r'\b([CV])\b', flat)
+        if m:
+            data['Operação'] = 'Compra' if m.group(1).upper() == 'C' else 'Venda'
 
-    # Extração de taxas e IRRF
+    # --- Ticker ---
+    tick = None
+    m = re.search(r'\b([A-Z]{4}\d{1,2})\b', flat)
+    if m:
+        tick = m.group(1)
+        data['Ativo (Ticker)'] = tick
+
+    # --- Quantidade & Valor Unitário (extrai do contexto do ticker) ---
+    # Estratégia: procurar na linha do ticker (e até 2 linhas seguintes)
+    # padrão: <TICKER> ... <QTD> ... <PREÇO>
+    if tick:
+        # acha o índice da linha com o ticker
+        idx = None
+        for i, ln in enumerate(lines):
+            if tick in ln:
+                idx = i
+                break
+
+        # janela de contexto
+        context = ""
+        if idx is not None:
+            context = " ".join(lines[idx: min(idx + 3, len(lines))])
+
+            # 1) Captura QTD e PREÇO depois do ticker
+            m = re.search(
+                rf'{re.escape(tick)}\D+(\d+)\D+(?:R\$\s*)?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}})',
+                context
+            )
+            if m:
+                data['Quantidade'] = m.group(1)
+                data['Valor Unitário'] = f"R$ {m.group(2)}"
+            else:
+                # 2) Se não achou junto, tenta: primeiro a quantidade ao lado do ticker...
+                mq = re.search(rf'{re.escape(tick)}\D+(\d+)', context)
+                if mq:
+                    data['Quantidade'] = mq.group(1)
+
+                # ...e depois procura o primeiro "Preço/Valor Unitário" próximo
+                mp = re.search(
+                    r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})',
+                    context,
+                    re.IGNORECASE
+                )
+                if not mp:
+                    # fallback global, mas ainda assim procurando explicitamente "Preço/Valor Unitário"
+                    mp = re.search(
+                        r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})',
+                        flat,
+                        re.IGNORECASE
+                    )
+                if mp:
+                    data['Valor Unitário'] = f"R$ {mp.group(1)}"
+
+    # --- IRRF (aceita vários formatos; assume 0,00 se não achar) ---
+    m = re.search(r'(?:IRRF|I\.?R\.?R\.?F)\s*(?:day\s*trade|s/?\s*opera[çc][õo]es)?\D*'
+                  r'(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})', flat, re.IGNORECASE)
+    data['IRRF'] = f"R$ {m.group(1)}" if m else "R$ 0,00"
+
+    # --- Total de taxas (soma de itens) ---
     total_taxas = 0.0
-    
-    irrf_match = re.search(r'I\.R\.R\.F\. s\/ operações.*?([\d,]+)', normalized_text, re.IGNORECASE)
-    if irrf_match:
-        extracted_data['IRRF'] = f"R$ {irrf_match.group(1).strip()}"
+    for kw in ['Taxa de liquidação', 'Emolumentos', 'Taxa operacional', 'Outros']:
+        m = re.search(rf'{kw}.*?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}}|\d+,\d{{2}})', flat, re.IGNORECASE)
+        if m:
+            valor = m.group(1).replace('.', '').replace(',', '.')
+            total_taxas += float(valor)
+    data['Total Taxas'] = f"R$ {total_taxas:.2f}".replace('.', ',')
 
-    taxas_keywords = {
-        'Taxa de liquidação': 0.0,
-        'Emolumentos': 0.0,
-        'Outros': 0.0
-    }
-    
-    for keyword in taxas_keywords:
-        match = re.search(f'{keyword}.*?([\d,]+)', normalized_text, re.IGNORECASE)
-        if match:
-            total_taxas += float(match.group(1).replace(',', '.'))
-    
-    extracted_data['Total Taxas'] = f"R$ {total_taxas:.2f}".replace('.', ',')
+    return data
 
-    return extracted_data
-
+# -------- Endpoint --------
 @app.route('/api/extract_data', methods=['POST'])
 def handle_file_upload():
-    """Endpoint para receber o PDF e extrair os dados."""
     if 'file' not in request.files:
         return jsonify({'error': 'Nenhum arquivo enviado'}), 400
 
     file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.pdf'):
+    if file.filename == '' or not file.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Arquivo inválido. Por favor, envie um PDF.'}), 400
 
     try:
-        with pdfplumber.open(file.stream) as pdf:
-            text = ""
-            for page in pdf.pages:
-                text += page.extract_text()
+        file_bytes = file.read()
 
-        if text:
-            extracted_data = extract_data_from_brokerage_note(text)
-            return jsonify(extracted_data)
-        else:
-            return jsonify({'error': 'Não foi possível extrair texto do PDF. O documento pode ser uma imagem.'}), 400
+        # 1) tenta com pdfplumber
+        text = ""
+        try:
+            with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+                for page in pdf.pages:
+                    t = page.extract_text()
+                    if t:
+                        text += t + "\n"
+        except Exception:
+            text = ""
+
+        # 2) fallback OCR
+        if not text.strip():
+            text = extract_text_with_ocr(file_bytes)
+
+        # opcional: debug
+        # print("\n=== TEXTO EXTRAÍDO ===\n", text, "\n======================\n")
+
+        if not text.strip():
+            return jsonify({'error': 'Não foi possível extrair texto do PDF.'}), 400
+
+        extracted = extract_data_from_brokerage_note(text)
+        return jsonify(extracted)
 
     except Exception as e:
         return jsonify({'error': f'Erro ao processar o PDF: {str(e)}'}), 500
