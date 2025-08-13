@@ -5,159 +5,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extrator de Nota de Corretagem</title>
-    <!-- Inclui a biblioteca Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Define a fonte Inter para uma aparência moderna */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-
-        /* Estilos personalizados para o card e o dropzone */
-        .card {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .dropzone {
-            border: 2px dashed #d1d5db;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-        }
-
-        .dropzone:hover {
-            border-color: #9ca3af;
-            background-color: #f9fafb;
-        }
-
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #6366f1;
-            animation: spin 1s ease infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Estilo da tabela para melhor visualização */
-        .results-table th,
-        .results-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .results-table th {
-            font-weight: 600;
-            background-color: #f9fafb;
-        }
-    </style>
 </head>
 
-<body class="p-4 sm:p-8">
+<body class="p-4 sm:p-8 bg-gray-100">
 
     <div class="container mx-auto p-4 max-w-4xl">
-        <!-- Título da aplicação -->
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Extrator de Dados de Nota de Corretagem</h1>
         <p class="text-center text-gray-600 mb-8">
             Faça o upload de uma nota de corretagem em PDF para extrair as principais informações.
         </p>
 
-        <!-- Card principal da aplicação -->
-        <div class="card p-6 md:p-8">
-            <div class="space-y-6">
-
-                <!-- Formulário para envio do arquivo -->
-                <form id="upload-form" class="space-y-6">
-                    <!-- Área de upload/seleção de arquivo -->
-                    <div>
-                        <label for="file-upload" class="block text-sm font-medium text-gray-700">Selecione o arquivo da
-                            Nota de Corretagem (PDF)</label>
-                        <div
-                            class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dropzone">
-                            <div class="space-y-1 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
-                                    viewBox="0 0 48 48" aria-hidden="true">
-                                    <path
-                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.26-3.26a4 4 0 00-5.66 0L16 28"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <div class="flex text-sm text-gray-600">
-                                    <label for="file-upload"
-                                        class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                        <span>Clique para carregar</span>
-                                        <input id="file-upload" name="file" type="file" class="sr-only" accept=".pdf">
-                                    </label>
-                                    <p class="pl-1">ou arraste e solte</p>
-                                </div>
-                                <p class="text-xs text-gray-500" id="file-name">Nenhum arquivo selecionado</p>
-                            </div>
-                        </div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form id="upload-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Selecione o arquivo (PDF)</label>
+                    <div class="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+                        <input id="file-upload" name="file" type="file" accept=".pdf" class="hidden">
+                        <label for="file-upload" class="cursor-pointer text-indigo-600 hover:text-indigo-800">Clique
+                            para carregar</label>
+                        <p class="text-xs text-gray-500" id="file-name">Nenhum arquivo selecionado</p>
                     </div>
+                </div>
+                <div class="flex justify-center">
+                    <button type="submit" id="process-button"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                        disabled>
+                        Processar Nota
+                    </button>
+                </div>
+            </form>
 
-                    <!-- Botão de processar -->
-                    <div class="flex justify-center mt-6">
-                        <button type="submit" id="process-button"
-                            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                            disabled>
-                            Processar Nota
-                        </button>
-                        <div id="loading-spinner" class="loading-spinner ml-4"></div>
-                    </div>
-                </form>
+            <div id="results-container" class="mt-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Dados Extraídos</h2>
 
-                <!-- Área para exibir a tabela de resultados -->
-                <div id="results-container" class="mt-8 hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Dados Extraídos</h2>
-                    <div class="overflow-x-auto card">
-                        <table class="min-w-full divide-y divide-gray-200 results-table">
+                <!-- Tabela dos campos globais -->
+                <div class="overflow-x-auto mb-6">
+                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
+                        <thead class="bg-gray-50">
+                            <tr id="results-table-header"></tr>
+                        </thead>
+                        <tbody id="results-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+
+                <!-- Subtabela de negociações -->
+                <div id="negociacoes-container" class="hidden">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Negociações</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
                             <thead class="bg-gray-50">
-                                <tr id="results-table-header">
-                                    <!-- Cabeçalhos das colunas serão inseridos aqui via JavaScript -->
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Ativo</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Operação</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Quantidade</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Valor Unitário
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody id="results-table-body" class="bg-white divide-y divide-gray-200">
-                                <tr id="results-table-row">
-                                    <!-- Dados da tabela serão inseridos aqui via JavaScript -->
-                                </tr>
-                            </tbody>
+                            <tbody id="negociacoes-table-body" class="bg-white divide-y divide-gray-200"></tbody>
                         </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- Caixa de mensagem personalizada para avisos -->
-                <div id="message-box" class="p-4 mt-6 rounded-md bg-blue-50 text-blue-700 hidden" role="alert">
-                    <p id="message-content" class="text-sm"></p>
-                </div>
-
+            <div id="message-box" class="p-4 mt-6 rounded-md hidden" role="alert">
+                <p id="message-content" class="text-sm"></p>
             </div>
         </div>
     </div>
 
     <script>
-        // Este código JavaScript lida com a interface do usuário e a comunicação com o back-end.
         document.addEventListener('DOMContentLoaded', () => {
             const uploadForm = document.getElementById('upload-form');
             const fileUpload = document.getElementById('file-upload');
             const fileNameSpan = document.getElementById('file-name');
             const processButton = document.getElementById('process-button');
-            const loadingSpinner = document.getElementById('loading-spinner');
             const resultsContainer = document.getElementById('results-container');
             const resultsTableHeader = document.getElementById('results-table-header');
-            const resultsTableRow = document.getElementById('results-table-row');
+            const resultsTableBody = document.getElementById('results-table-body');
+            const negociacoesContainer = document.getElementById('negociacoes-container');
+            const negociacoesTableBody = document.getElementById('negociacoes-table-body');
             const messageBox = document.getElementById('message-box');
             const messageContent = document.getElementById('message-content');
 
@@ -173,24 +101,23 @@
             });
 
             uploadForm.addEventListener('submit', async (event) => {
-                event.preventDefault(); // Impede o envio padrão do formulário
+                event.preventDefault();
 
                 const file = fileUpload.files[0];
                 if (!file) {
-                    showMessage('Por favor, selecione um arquivo para processar.', 'bg-yellow-50 text-yellow-700');
+                    showMessage('Por favor, selecione um arquivo.', 'bg-yellow-50 text-yellow-700');
                     return;
                 }
 
                 resultsContainer.classList.add('hidden');
-                loadingSpinner.style.display = 'block';
+                negociacoesContainer.classList.add('hidden');
                 processButton.disabled = true;
-                showMessage('Enviando e processando a nota de corretagem...', 'bg-blue-50 text-blue-700');
+                showMessage('Processando...', 'bg-blue-50 text-blue-700');
 
                 const formData = new FormData();
                 formData.append('file', file);
 
                 try {
-                    // A URL aqui aponta para o servidor Flask rodando localmente
                     const response = await fetch('http://127.0.0.1:5000/api/extract_data', {
                         method: 'POST',
                         body: formData
@@ -198,20 +125,25 @@
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || `Erro do servidor: ${response.statusText}`);
+                        throw new Error(errorData.error || 'Erro no servidor');
                     }
 
                     const extractedData = await response.json();
 
+                    // Renderiza campos globais
+                    renderGlobalTable(extractedData);
+
+                    // Renderiza negociações
+                    if (Array.isArray(extractedData.Negociacoes) && extractedData.Negociacoes.length > 0) {
+                        renderNegociacoesTable(extractedData.Negociacoes);
+                        negociacoesContainer.classList.remove('hidden');
+                    }
+
                     resultsContainer.classList.remove('hidden');
                     showMessage('Dados extraídos com sucesso!', 'bg-green-50 text-green-700');
-
-                    renderTable(extractedData);
                 } catch (error) {
-                    showMessage(`Ocorreu um erro no processamento: ${error.message}`, 'bg-red-50 text-red-700');
-                    console.error("Erro ao processar dados:", error);
+                    showMessage(`Erro: ${error.message}`, 'bg-red-50 text-red-700');
                 } finally {
-                    loadingSpinner.style.display = 'none';
                     processButton.disabled = false;
                 }
             });
@@ -222,24 +154,45 @@
                 messageContent.textContent = message;
             }
 
-            function renderTable(data) {
+            function renderGlobalTable(data) {
                 resultsTableHeader.innerHTML = '';
-                resultsTableRow.innerHTML = '';
+                resultsTableBody.innerHTML = '';
 
+                // Cabeçalhos globais (sem Negociacoes)
                 for (const key in data) {
-                    const th = document.createElement('th');
-                    th.scope = "col";
-                    th.className = "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider";
-                    th.textContent = key;
-                    resultsTableHeader.appendChild(th);
+                    if (key !== 'Negociacoes') {
+                        const th = document.createElement('th');
+                        th.className = "px-6 py-3 text-xs font-medium text-gray-500 uppercase";
+                        th.textContent = key;
+                        resultsTableHeader.appendChild(th);
+                    }
                 }
 
+                // Linha única com valores globais
+                const row = document.createElement('tr');
                 for (const key in data) {
-                    const td = document.createElement('td');
-                    td.className = "px-6 py-4 whitespace-nowrap text-sm text-gray-500";
-                    td.textContent = data[key];
-                    resultsTableRow.appendChild(td);
+                    if (key !== 'Negociacoes') {
+                        const td = document.createElement('td');
+                        td.className = "px-6 py-4 text-sm text-gray-500";
+                        td.textContent = data[key];
+                        row.appendChild(td);
+                    }
                 }
+                resultsTableBody.appendChild(row);
+            }
+
+            function renderNegociacoesTable(negociacoes) {
+                negociacoesTableBody.innerHTML = '';
+                negociacoes.forEach(neg => {
+                    const row = document.createElement('tr');
+                    ['Ativo', 'Operacao', 'Quantidade', 'Valor Unitário'].forEach(field => {
+                        const td = document.createElement('td');
+                        td.className = "px-6 py-4 text-sm text-gray-500";
+                        td.textContent = neg[field] || '';
+                        row.appendChild(td);
+                    });
+                    negociacoesTableBody.appendChild(row);
+                });
             }
         });
     </script>
