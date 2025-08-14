@@ -37,7 +37,6 @@ def extract_data_from_brokerage_note(text: str):
     if m: corretora = m.group(1).title()
 
     m = re.search(r'(?:IRRF|I\.?R\.?R\.?F)\s*(?:day\s*trade|s/?\s*opera[çc][õo]es)?\D*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})', flat, re.IGNORECASE)
-    # ALTERAÇÃO 1: Removido "R$ "
     if m: irrf = m.group(1)
 
     for kw in ['Taxa de liquidação', 'Emolumentos', 'Taxa operacional', 'Outros']:
@@ -62,7 +61,6 @@ def extract_data_from_brokerage_note(text: str):
             qp_match = re.search(pattern_string, ln)
 
             if qp_match:
-                # ALTERAÇÃO 2: Removido "R$ "
                 qtd, preco = qp_match.group(1), qp_match.group(2)
             else:
                 qtd_match = re.search(rf'{re.escape(ticker)}\D+(\d+)', ln)
@@ -70,7 +68,6 @@ def extract_data_from_brokerage_note(text: str):
                 preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', ln, re.IGNORECASE)
                 if not preco_match and i + 1 < len(lines):
                     preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', lines[i+1], re.IGNORECASE)
-                # ALTERAÇÃO 3: Removido "R$ "
                 if preco_match: preco = preco_match.group(1)
 
             negociacoes.append({
@@ -82,7 +79,6 @@ def extract_data_from_brokerage_note(text: str):
     return {
         "Data da Operação": data_operacao, "Corretora": corretora,
         "IRRF": irrf, 
-        # ALTERAÇÃO 4: Removido "R$ "
         "Total Taxas": f"{total_taxas:.2f}".replace('.', ','),
         "Negociacoes": negociacoes
     }
@@ -114,7 +110,35 @@ def handle_file_upload():
     for note in processed_notes:
         corretora_transformed = "XPI" if note.get("Corretora") == "Xp Investimentos" else note.get("Corretora")
         
+        # --- INÍCIO DA LÓGICA DE TAXA PROPORCIONAL ---
+        total_taxas_nota_float = float(note.get("Total Taxas", "0,00").replace(',', '.'))
+        
+        # 1. Calcula o valor total da nota e armazena o valor de cada operação
+        valor_total_nota = 0
+        operacoes_com_valor = []
         for trade in note.get("Negociacoes", []):
+            try:
+                quantidade = int(trade.get("Quantidade", 0))
+                preco = float(trade.get("Valor Unitário", "0").replace(',', '.'))
+                valor_operacao = quantidade * preco
+                valor_total_nota += valor_operacao
+                operacoes_com_valor.append({"trade": trade, "valor_operacao": valor_operacao})
+            except (ValueError, TypeError):
+                operacoes_com_valor.append({"trade": trade, "valor_operacao": 0})
+
+        # 2. Itera sobre as operações para montar a saída com a taxa proporcional
+        for item in operacoes_com_valor:
+            trade = item["trade"]
+            valor_operacao = item["valor_operacao"]
+            
+            taxa_proporcional = 0
+            if valor_total_nota > 0:
+                proporcao = valor_operacao / valor_total_nota
+                taxa_proporcional = total_taxas_nota_float * proporcao
+            
+            taxa_proporcional_str = f"{taxa_proporcional:.2f}".replace('.', ',')
+            # --- FIM DA LÓGICA DE TAXA PROPORCIONAL ---
+
             operacao_transformed = "C" if trade.get("Operacao") == "Compra" else ("V" if trade.get("Operacao") == "Venda" else trade.get("Operacao"))
             
             flat_trades.append({
@@ -123,7 +147,7 @@ def handle_file_upload():
                 "Ticker": trade.get("Ativo"),
                 "Quantidade negociado": trade.get("Quantidade"),
                 "Preço unitário negociado": trade.get("Valor Unitário"),
-                "Taxas": note.get("Total Taxas"),
+                "Taxas": taxa_proporcional_str, # <- Usa o novo valor calculado
                 "IRRF": note.get("IRRF"),
                 "Split Ratio": "1",
                 "Corretora": corretora_transformed
