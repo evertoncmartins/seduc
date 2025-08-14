@@ -67,26 +67,27 @@ def extract_data_from_brokerage_note(text: str):
             preco = None
             operacao = "Não encontrado"
 
-            # ------------------- INÍCIO DA ALTERAÇÃO -------------------
-            # Lógica ajustada para procurar por 'C' ou 'V' na linha da negociação.
-            # O uso de \b (word boundary) garante que estamos pegando a letra isolada.
             if re.search(r'\bC\b', ln):
                 operacao = "Compra"
             elif re.search(r'\bV\b', ln):
                 operacao = "Venda"
-            # -------------------- FIM DA ALTERAÇÃO --------------------
 
-            # Tenta quantidade e preço na mesma linha
-            qp_match = re.search(rf'{re.escape(ticker)}\D+(\d+)\D+(?:R\$\s*)?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}})', ln)
+            # ------------------- INÍCIO DA CORREÇÃO -------------------
+            # A linha original (com erro) era:
+            # qp_match = re.search(rf'{re.escape(ticker)}\D+(\d+)\D+(?:R\$\s*)?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}})', ln)
+            
+            # CORREÇÃO: Separamos a criação do padrão de busca para evitar o erro de sintaxe.
+            pattern_string = re.escape(ticker) + r'\D+(\d+)\D+(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})'
+            qp_match = re.search(pattern_string, ln)
+            # -------------------- FIM DA CORREÇÃO ---------------------
+            
             if qp_match:
                 qtd = qp_match.group(1)
                 preco = f"R$ {qp_match.group(2)}"
             else:
-                # Procura quantidade depois do ticker
                 qtd_match = re.search(rf'{re.escape(ticker)}\D+(\d+)', ln)
                 if qtd_match:
                     qtd = qtd_match.group(1)
-                # Procura preço na linha ou na próxima
                 preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', ln, re.IGNORECASE)
                 if not preco_match and i + 1 < len(lines):
                     preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', lines[i+1], re.IGNORECASE)
@@ -111,39 +112,38 @@ def extract_data_from_brokerage_note(text: str):
 # ---------------- Endpoint ----------------
 @app.route('/api/extract_data', methods=['POST'])
 def handle_file_upload():
-    if 'file' not in request.files:
+    files = request.files.getlist('file')
+    if not files or all(f.filename == '' for f in files):
         return jsonify({'error': 'Nenhum arquivo enviado'}), 400
 
-    file = request.files['file']
-    if file.filename == '' or not file.filename.lower().endswith('.pdf'):
-        return jsonify({'error': 'Arquivo inválido. Por favor, envie um PDF.'}), 400
+    results = []
+    for file in files:
+        if file and file.filename.lower().endswith('.pdf'):
+            try:
+                file_bytes = file.read()
+                text = ""
+                try:
+                    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+                        for page in pdf.pages:
+                            t = page.extract_text()
+                            if t: text += t + "\n"
+                except Exception:
+                    text = ""
 
-    try:
-        file_bytes = file.read()
+                if not text.strip():
+                    text = extract_text_with_ocr(file_bytes)
 
-        # 1) Tenta pdfplumber
-        text = ""
-        try:
-            with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-                for page in pdf.pages:
-                    t = page.extract_text()
-                    if t:
-                        text += t + "\n"
-        except Exception:
-            text = ""
+                if text.strip():
+                    extracted = extract_data_from_brokerage_note(text)
+                    extracted['filename'] = file.filename 
+                    results.append(extracted)
+                else:
+                    results.append({'filename': file.filename, 'error': 'Não foi possível extrair texto do PDF.'})
 
-        # 2) Fallback OCR
-        if not text.strip():
-            text = extract_text_with_ocr(file_bytes)
-
-        if not text.strip():
-            return jsonify({'error': 'Não foi possível extrair texto do PDF.'}), 400
-
-        extracted = extract_data_from_brokerage_note(text)
-        return jsonify(extracted)
-
-    except Exception as e:
-        return jsonify({'error': f'Erro ao processar o PDF: {str(e)}'}), 500
+            except Exception as e:
+                results.append({'filename': file.filename, 'error': f'Erro ao processar o PDF: {str(e)}'})
+    
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)

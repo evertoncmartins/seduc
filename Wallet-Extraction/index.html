@@ -13,15 +13,15 @@
     <div class="container mx-auto p-4 max-w-4xl">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Extrator de Dados de Nota de Corretagem</h1>
         <p class="text-center text-gray-600 mb-8">
-            Faça o upload de uma nota de corretagem em PDF para extrair as principais informações.
+            Faça o upload de uma ou mais notas de corretagem em PDF para extrair as principais informações.
         </p>
 
         <div class="bg-white rounded-lg shadow-md p-6">
             <form id="upload-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Selecione o arquivo (PDF)</label>
+                    <label class="block text-sm font-medium text-gray-700">Selecione o(s) arquivo(s) (PDF)</label>
                     <div class="mt-2 border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-                        <input id="file-upload" name="file" type="file" accept=".pdf" class="hidden">
+                        <input id="file-upload" name="file" type="file" accept=".pdf" class="hidden" multiple>
                         <label for="file-upload" class="cursor-pointer text-indigo-600 hover:text-indigo-800">Clique
                             para carregar</label>
                         <p class="text-xs text-gray-500" id="file-name">Nenhum arquivo selecionado</p>
@@ -31,45 +31,12 @@
                     <button type="submit" id="process-button"
                         class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
                         disabled>
-                        Processar Nota
+                        Processar Nota(s)
                     </button>
                 </div>
             </form>
 
-            <div id="results-container" class="mt-8 hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Dados Extraídos</h2>
-
-                <div class="overflow-x-auto mb-6">
-                    <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
-                        <thead class="bg-gray-50">
-                            <tr id="results-table-header"></tr>
-                        </thead>
-                        <tbody id="results-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-
-                <div id="negociacoes-container" class="hidden">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Negociações</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ativo
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operação
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Quantidade</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor
-                                        Unitário
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="negociacoes-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <div id="results-container" class="mt-8"></div>
 
             <div id="message-box" class="p-4 mt-6 rounded-md hidden" role="alert">
                 <p id="message-content" class="text-sm"></p>
@@ -84,17 +51,14 @@
             const fileNameSpan = document.getElementById('file-name');
             const processButton = document.getElementById('process-button');
             const resultsContainer = document.getElementById('results-container');
-            const resultsTableHeader = document.getElementById('results-table-header');
-            const resultsTableBody = document.getElementById('results-table-body');
-            const negociacoesContainer = document.getElementById('negociacoes-container');
-            const negociacoesTableBody = document.getElementById('negociacoes-table-body');
             const messageBox = document.getElementById('message-box');
             const messageContent = document.getElementById('message-content');
 
             fileUpload.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    fileNameSpan.textContent = file.name;
+                const files = event.target.files;
+                if (files.length > 0) {
+                    // Lógica para exibir o número de arquivos
+                    fileNameSpan.textContent = `${files.length} arquivo(s) selecionado(s)`;
                     processButton.disabled = false;
                 } else {
                     fileNameSpan.textContent = 'Nenhum arquivo selecionado';
@@ -105,19 +69,21 @@
             uploadForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
 
-                const file = fileUpload.files[0];
-                if (!file) {
-                    showMessage('Por favor, selecione um arquivo.', 'bg-yellow-50 text-yellow-700');
+                const files = fileUpload.files;
+                if (files.length === 0) {
+                    showMessage('Por favor, selecione ao menos um arquivo.', 'bg-yellow-50 text-yellow-700');
                     return;
                 }
 
-                resultsContainer.classList.add('hidden');
-                negociacoesContainer.classList.add('hidden');
+                resultsContainer.innerHTML = ''; // Limpa resultados anteriores
                 processButton.disabled = true;
                 showMessage('Processando...', 'bg-blue-50 text-blue-700');
 
                 const formData = new FormData();
-                formData.append('file', file);
+                // Adiciona todos os arquivos ao mesmo campo 'file'
+                for (const file of files) {
+                    formData.append('file', file);
+                }
 
                 try {
                     const response = await fetch('http://127.0.0.1:5000/api/extract_data', {
@@ -130,18 +96,13 @@
                         throw new Error(errorData.error || 'Erro no servidor');
                     }
 
-                    const extractedData = await response.json();
+                    const resultsArray = await response.json();
 
-                    // Renderiza campos globais
-                    renderGlobalTable(extractedData);
+                    // Renderiza um bloco de resultado para cada arquivo processado
+                    resultsArray.forEach(data => {
+                        renderResultBlock(data);
+                    });
 
-                    // Renderiza negociações
-                    if (Array.isArray(extractedData.Negociacoes) && extractedData.Negociacoes.length > 0) {
-                        renderNegociacoesTable(extractedData.Negociacoes);
-                        negociacoesContainer.classList.remove('hidden');
-                    }
-
-                    resultsContainer.classList.remove('hidden');
                     showMessage('Dados extraídos com sucesso!', 'bg-green-50 text-green-700');
                 } catch (error) {
                     showMessage(`Erro: ${error.message}`, 'bg-red-50 text-red-700');
@@ -156,48 +117,70 @@
                 messageContent.textContent = message;
             }
 
-            function renderGlobalTable(data) {
-                resultsTableHeader.innerHTML = '';
-                resultsTableBody.innerHTML = '';
+            // Nova função para renderizar um bloco de resultado completo para uma nota
+            function renderResultBlock(data) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'mb-12'; // Espaçamento entre os resultados das notas
 
-                // Cabeçalhos globais (sem Negociacoes)
-                for (const key in data) {
-                    if (key !== 'Negociacoes') {
-                        const th = document.createElement('th');
-                        // Classe text-left adicionada aqui
-                        th.className = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase";
-                        th.textContent = key;
-                        resultsTableHeader.appendChild(th);
-                    }
+                let content = `
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                        Resultados para: <span class="font-medium">${data.filename}</span>
+                    </h2>
+                `;
+
+                if (data.error) {
+                    content += `<p class="text-red-600">Erro: ${data.error}</p>`;
+                    resultDiv.innerHTML = content;
+                    resultsContainer.appendChild(resultDiv);
+                    return;
                 }
 
-                // Linha única com valores globais
-                const row = document.createElement('tr');
-                for (const key in data) {
-                    if (key !== 'Negociacoes') {
-                        const td = document.createElement('td');
-                        // Classe text-left adicionada aqui
-                        td.className = "px-6 py-4 text-left text-sm text-gray-500";
-                        td.textContent = data[key];
-                        row.appendChild(td);
-                    }
-                }
-                resultsTableBody.appendChild(row);
-            }
+                // Tabela de dados globais
+                const globalKeys = Object.keys(data).filter(k => k !== 'Negociacoes' && k !== 'filename');
+                content += `
+                    <div class="overflow-x-auto mb-6">
+                        <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>${globalKeys.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${key}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>${globalKeys.map(key => `<td class="px-6 py-4 text-left text-sm text-gray-500">${data[key]}</td>`).join('')}</tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
 
-            function renderNegociacoesTable(negociacoes) {
-                negociacoesTableBody.innerHTML = '';
-                negociacoes.forEach(neg => {
-                    const row = document.createElement('tr');
-                    ['Ativo', 'Operacao', 'Quantidade', 'Valor Unitário'].forEach(field => {
-                        const td = document.createElement('td');
-                        // Classe text-left adicionada aqui
-                        td.className = "px-6 py-4 text-left text-sm text-gray-500";
-                        td.textContent = neg[field] || '';
-                        row.appendChild(td);
-                    });
-                    negociacoesTableBody.appendChild(row);
-                });
+                // Tabela de negociações
+                if (Array.isArray(data.Negociacoes) && data.Negociacoes.length > 0) {
+                    content += `
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Negociações</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ativo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operação</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantidade</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Unitário</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${data.Negociacoes.map(neg => `
+                                        <tr>
+                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Ativo'] || ''}</td>
+                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Operacao'] || ''}</td>
+                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Quantidade'] || ''}</td>
+                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Valor Unitário'] || ''}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = content;
+                resultsContainer.appendChild(resultDiv);
             }
         });
     </script>
