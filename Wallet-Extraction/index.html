@@ -10,7 +10,7 @@
 
 <body class="p-4 sm:p-8 bg-gray-100">
 
-    <div class="container mx-auto p-4 max-w-4xl">
+    <div class="container mx-auto p-4 max-w-6xl">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">Extrator de Dados de Nota de Corretagem</h1>
         <p class="text-center text-gray-600 mb-8">
             Faça o upload de uma ou mais notas de corretagem em PDF para extrair as principais informações.
@@ -56,14 +56,8 @@
 
             fileUpload.addEventListener('change', (event) => {
                 const files = event.target.files;
-                if (files.length > 0) {
-                    // Lógica para exibir o número de arquivos
-                    fileNameSpan.textContent = `${files.length} arquivo(s) selecionado(s)`;
-                    processButton.disabled = false;
-                } else {
-                    fileNameSpan.textContent = 'Nenhum arquivo selecionado';
-                    processButton.disabled = true;
-                }
+                fileNameSpan.textContent = files.length > 0 ? `${files.length} arquivo(s) selecionado(s)` : 'Nenhum arquivo selecionado';
+                processButton.disabled = files.length === 0;
             });
 
             uploadForm.addEventListener('submit', async (event) => {
@@ -75,12 +69,11 @@
                     return;
                 }
 
-                resultsContainer.innerHTML = ''; // Limpa resultados anteriores
+                resultsContainer.innerHTML = '';
                 processButton.disabled = true;
                 showMessage('Processando...', 'bg-blue-50 text-blue-700');
 
                 const formData = new FormData();
-                // Adiciona todos os arquivos ao mesmo campo 'file'
                 for (const file of files) {
                     formData.append('file', file);
                 }
@@ -96,14 +89,10 @@
                         throw new Error(errorData.error || 'Erro no servidor');
                     }
 
-                    const resultsArray = await response.json();
-
-                    // Renderiza um bloco de resultado para cada arquivo processado
-                    resultsArray.forEach(data => {
-                        renderResultBlock(data);
-                    });
-
+                    const trades = await response.json();
+                    renderConsolidatedTable(trades);
                     showMessage('Dados extraídos com sucesso!', 'bg-green-50 text-green-700');
+
                 } catch (error) {
                     showMessage(`Erro: ${error.message}`, 'bg-red-50 text-red-700');
                 } finally {
@@ -117,70 +106,46 @@
                 messageContent.textContent = message;
             }
 
-            // Nova função para renderizar um bloco de resultado completo para uma nota
-            function renderResultBlock(data) {
-                const resultDiv = document.createElement('div');
-                resultDiv.className = 'mb-12'; // Espaçamento entre os resultados das notas
-
-                let content = `
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
-                        Resultados para: <span class="font-medium">${data.filename}</span>
-                    </h2>
-                `;
-
-                if (data.error) {
-                    content += `<p class="text-red-600">Erro: ${data.error}</p>`;
-                    resultDiv.innerHTML = content;
-                    resultsContainer.appendChild(resultDiv);
+            function renderConsolidatedTable(trades) {
+                if (!Array.isArray(trades) || trades.length === 0) {
+                    resultsContainer.innerHTML = '<p class="text-center text-gray-500">Nenhuma negociação encontrada.</p>';
                     return;
                 }
 
-                // Tabela de dados globais
-                const globalKeys = Object.keys(data).filter(k => k !== 'Negociacoes' && k !== 'filename');
-                content += `
-                    <div class="overflow-x-auto mb-6">
+                // --------- INÍCIO DA CORREÇÃO ---------
+                // Define os cabeçalhos e as chaves de dados na mesma ordem para garantir o alinhamento correto.
+                const columns = [
+                    { header: "Data da operação", key: "Data da operação" },
+                    { header: "Operação", key: "Operação" },
+                    { header: "Ticker", key: "Ticker" },
+                    { header: "Quantidade negociado", key: "Quantidade negociado" },
+                    { header: "Preço unitário negociado", key: "Preço unitário negociado" },
+                    { header: "Taxas", key: "Taxas" },
+                    { header: "IRRF", key: "IRRF" },
+                    { header: "Split Ratio", key: "Split Ratio" },
+                    { header: "Corretora", key: "Corretora" }
+                ];
+
+                const headerHtml = columns.map(col => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${col.header}</th>`).join('');
+
+                const bodyHtml = trades.map(trade => {
+                    const rowData = columns.map(col => `<td class="px-6 py-4 whitespace-nowrap text-left text-sm text-gray-700">${trade[col.key] || ''}</td>`).join('');
+                    return `<tr>${rowData}</tr>`;
+                }).join('');
+                // --------- FIM DA CORREÇÃO ---------
+
+                resultsContainer.innerHTML = `
+                    <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
                             <thead class="bg-gray-50">
-                                <tr>${globalKeys.map(key => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${key}</th>`).join('')}</tr>
+                                <tr>${headerHtml}</tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <tr>${globalKeys.map(key => `<td class="px-6 py-4 text-left text-sm text-gray-500">${data[key]}</td>`).join('')}</tr>
+                                ${bodyHtml}
                             </tbody>
                         </table>
                     </div>
                 `;
-
-                // Tabela de negociações
-                if (Array.isArray(data.Negociacoes) && data.Negociacoes.length > 0) {
-                    content += `
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Negociações</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ativo</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operação</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantidade</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Unitário</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    ${data.Negociacoes.map(neg => `
-                                        <tr>
-                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Ativo'] || ''}</td>
-                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Operacao'] || ''}</td>
-                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Quantidade'] || ''}</td>
-                                            <td class="px-6 py-4 text-left text-sm text-gray-500">${neg['Valor Unitário'] || ''}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
-                }
-
-                resultDiv.innerHTML = content;
-                resultsContainer.appendChild(resultDiv);
             }
         });
     </script>
