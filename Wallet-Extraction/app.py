@@ -67,12 +67,14 @@ def extract_data_from_brokerage_note(text: str):
             preco = None
             operacao = "Não encontrado"
 
-            # Tenta achar operação na linha ou próxima
-            op_match = re.search(r'\b(COMPRA|VENDA)\b', ln, re.IGNORECASE)
-            if not op_match and i > 0:
-                op_match = re.search(r'\b(COMPRA|VENDA)\b', lines[i-1], re.IGNORECASE)
-            if op_match:
-                operacao = op_match.group(1).capitalize()
+            # ------------------- INÍCIO DA ALTERAÇÃO -------------------
+            # Lógica ajustada para procurar por 'C' ou 'V' na linha da negociação.
+            # O uso de \b (word boundary) garante que estamos pegando a letra isolada.
+            if re.search(r'\bC\b', ln):
+                operacao = "Compra"
+            elif re.search(r'\bV\b', ln):
+                operacao = "Venda"
+            # -------------------- FIM DA ALTERAÇÃO --------------------
 
             # Tenta quantidade e preço na mesma linha
             qp_match = re.search(rf'{re.escape(ticker)}\D+(\d+)\D+(?:R\$\s*)?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}})', ln)

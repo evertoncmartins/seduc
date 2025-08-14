@@ -39,7 +39,6 @@
             <div id="results-container" class="mt-8 hidden">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Dados Extraídos</h2>
 
-                <!-- Tabela dos campos globais -->
                 <div class="overflow-x-auto mb-6">
                     <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
                         <thead class="bg-gray-50">
@@ -49,17 +48,20 @@
                     </table>
                 </div>
 
-                <!-- Subtabela de negociações -->
                 <div id="negociacoes-container" class="hidden">
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">Negociações</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 border rounded-lg">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Ativo</th>
-                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Operação</th>
-                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Quantidade</th>
-                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Valor Unitário
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ativo
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operação
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Quantidade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor
+                                        Unitário
                                     </th>
                                 </tr>
                             </thead>
@@ -162,7 +164,8 @@
                 for (const key in data) {
                     if (key !== 'Negociacoes') {
                         const th = document.createElement('th');
-                        th.className = "px-6 py-3 text-xs font-medium text-gray-500 uppercase";
+                        // Classe text-left adicionada aqui
+                        th.className = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase";
                         th.textContent = key;
                         resultsTableHeader.appendChild(th);
                     }
@@ -173,7 +176,8 @@
                 for (const key in data) {
                     if (key !== 'Negociacoes') {
                         const td = document.createElement('td');
-                        td.className = "px-6 py-4 text-sm text-gray-500";
+                        // Classe text-left adicionada aqui
+                        td.className = "px-6 py-4 text-left text-sm text-gray-500";
                         td.textContent = data[key];
                         row.appendChild(td);
                     }
@@ -187,7 +191,8 @@
                     const row = document.createElement('tr');
                     ['Ativo', 'Operacao', 'Quantidade', 'Valor Unitário'].forEach(field => {
                         const td = document.createElement('td');
-                        td.className = "px-6 py-4 text-sm text-gray-500";
+                        // Classe text-left adicionada aqui
+                        td.className = "px-6 py-4 text-left text-sm text-gray-500";
                         td.textContent = neg[field] || '';
                         row.appendChild(td);
                     });
