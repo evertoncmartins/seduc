@@ -42,14 +42,7 @@ VALUES
 -- ➡️ CONSULTA 1: Subconsulta em SELECT – Qual o total de compras por cliente?
 -- Consulta principal que seleciona o nome do cliente.
 -- Para cada cliente da consulta externa, esta subconsulta calcula a soma do 'valor_total' de todas as suas compras na tabela 'compras'.
-SELECT
-	nome,
-	(
-		SELECT SUM(valor_total)
-		FROM compras
-		WHERE compras.cliente_id = clientes.cliente_id
-	) AS total_gasto_cliente
-FROM clientes;
+
 
 -- ➡️ CONSULTA 2: Subconsulta em WHERE – Quais clientes gastaram acima da média?
 -- A consulta externa busca o nome de clientes distintos.
