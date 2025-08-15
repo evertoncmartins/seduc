@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extrator de Nota de Corretagem</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sortable-header {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sortable-header:hover {
+            background-color: #f0f0f0;
+        }
+
+        .sort-indicator {
+            display: inline-block;
+            width: 1em;
+            text-align: left;
+            margin-left: 0.5em;
+        }
+    </style>
 </head>
 
 <body class="p-4 sm:p-8 bg-gray-100">
@@ -59,11 +76,14 @@
             const resultsContainer = document.getElementById('results-container');
             const messageBox = document.getElementById('message-box');
             const messageContent = document.getElementById('message-content');
-
             const copyButtonContainer = document.getElementById('copy-button-container');
             const copyButton = document.getElementById('copy-button');
 
             let currentTradesData = [];
+
+            // NOVO: Variáveis para controlar o estado da ordenação
+            let sortColumn = null;
+            let sortDirection = 'asc';
 
             fileUpload.addEventListener('change', (event) => {
                 const files = event.target.files;
@@ -121,35 +141,69 @@
 
                 const columns = [
                     { header: "Data da operação", key: "Data da operação" },
-                    { header: "Operação", key: "Operação" },
-                    { header: "Ticker", key: "Ticker" },
+                    { header: "Operação", key: "Operação" }, { header: "Ticker", key: "Ticker" },
                     { header: "Quantidade negociado", key: "Quantidade negociado" },
                     { header: "Preço unitário negociado", key: "Preço unitário negociado" },
-                    { header: "Taxas", key: "Taxas" },
-                    { header: "IRRF", key: "IRRF" },
-                    { header: "Split Ratio", key: "Split Ratio" },
-                    { header: "Corretora", key: "Corretora" }
+                    { header: "Taxas", key: "Taxas" }, { header: "IRRF", key: "IRRF" },
+                    { header: "Split Ratio", key: "Split Ratio" }, { header: "Corretora", key: "Corretora" }
                 ];
 
-                // Cria as linhas de dados, também separadas por tabulações
                 const rows = currentTradesData.map(trade => {
                     return columns.map(col => trade[col.key] || '').join('\t');
                 });
 
-                // ---- INÍCIO DA MODIFICAÇÃO ----
-                // Junta apenas as linhas de dados em um único texto, sem o cabeçalho.
                 const textToCopy = rows.join('\n');
-                // ---- FIM DA MODIFICAÇÃO ----
 
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     showMessage('Dados copiados para a área de transferência!', 'bg-green-50 text-green-700');
                     copyButton.textContent = 'Copiado!';
                     setTimeout(() => { copyButton.textContent = 'Copiar Dados'; }, 2000);
                 }).catch(err => {
-                    showMessage('Falha ao copiar os dados. Verifique as permissões do navegador.', 'bg-red-50 text-red-700');
-                    console.error('Erro ao copiar:', err);
+                    showMessage('Falha ao copiar os dados.', 'bg-red-50 text-red-700');
                 });
             });
+
+            // NOVO: Event listener para cliques nos cabeçalhos (usando delegação de eventos)
+            resultsContainer.addEventListener('click', (event) => {
+                const header = event.target.closest('.sortable-header');
+                if (header) {
+                    const key = header.dataset.key;
+                    sortTable(key);
+                }
+            });
+
+            // NOVO: Função para ordenar a tabela
+            function sortTable(key) {
+                if (sortColumn === key) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = key;
+                    sortDirection = 'asc';
+                }
+
+                currentTradesData.sort((a, b) => {
+                    const valA = a[key];
+                    const valB = b[key];
+                    let comparison = 0;
+
+                    // Lógica para tratar diferentes tipos de dados
+                    if (key === 'Data da operação') {
+                        const dateA = valA.split('/').reverse().join('-');
+                        const dateB = valB.split('/').reverse().join('-');
+                        comparison = dateA.localeCompare(dateB);
+                    } else if (['Quantidade negociado', 'Preço unitário negociado', 'Taxas', 'IRRF'].includes(key)) {
+                        const numA = parseFloat(String(valA).replace('.', '').replace(',', '.'));
+                        const numB = parseFloat(String(valB).replace('.', '').replace(',', '.'));
+                        comparison = numA - numB;
+                    } else {
+                        comparison = String(valA).localeCompare(String(valB));
+                    }
+
+                    return sortDirection === 'asc' ? comparison : -comparison;
+                });
+
+                renderConsolidatedTable(currentTradesData);
+            }
 
             function showMessage(message, classes) {
                 messageBox.classList.remove('hidden');
@@ -157,6 +211,7 @@
                 messageContent.textContent = message;
             }
 
+            // MODIFICADO: Função de renderização agora inclui indicadores de ordenação
             function renderConsolidatedTable(trades) {
                 if (!Array.isArray(trades) || trades.length === 0) {
                     resultsContainer.innerHTML = '<p class="text-center text-gray-500">Nenhuma negociação encontrada.</p>';
@@ -166,17 +221,22 @@
 
                 const columns = [
                     { header: "Data da operação", key: "Data da operação" },
-                    { header: "Operação", key: "Operação" },
-                    { header: "Ticker", key: "Ticker" },
+                    { header: "Operação", key: "Operação" }, { header: "Ticker", key: "Ticker" },
                     { header: "Quantidade negociado", key: "Quantidade negociado" },
                     { header: "Preço unitário negociado", key: "Preço unitário negociado" },
-                    { header: "Taxas", key: "Taxas" },
-                    { header: "IRRF", key: "IRRF" },
-                    { header: "Split Ratio", key: "Split Ratio" },
-                    { header: "Corretora", key: "Corretora" }
+                    { header: "Taxas", key: "Taxas" }, { header: "IRRF", key: "IRRF" },
+                    { header: "Split Ratio", key: "Split Ratio" }, { header: "Corretora", key: "Corretora" }
                 ];
 
-                const headerHtml = columns.map(col => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${col.header}</th>`).join('');
+                const headerHtml = columns.map(col => {
+                    let sortIndicator = '';
+                    if (col.key === sortColumn) {
+                        sortIndicator = sortDirection === 'asc' ? '▲' : '▼';
+                    }
+                    return `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sortable-header" data-key="${col.key}">
+                                ${col.header}<span class="sort-indicator">${sortIndicator}</span>
+                            </th>`;
+                }).join('');
 
                 const bodyHtml = trades.map(trade => {
                     const rowData = columns.map(col => `<td class="px-6 py-4 whitespace-nowrap text-left text-sm text-gray-700">${trade[col.key] || ''}</td>`).join('');
