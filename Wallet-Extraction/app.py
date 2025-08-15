@@ -20,7 +20,8 @@ def extract_text_with_ocr(file_bytes):
     return text
 
 # ---------------- Parser ----------------
-def extract_data_from_brokerage_note(text: str):
+# MODIFICADO: A função agora aceita o nome do arquivo para extrair o ticker nas notas da Clear.
+def extract_data_from_brokerage_note(text: str, filename: str):
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     flat = " ".join(lines)
 
@@ -33,11 +34,13 @@ def extract_data_from_brokerage_note(text: str):
     if not m: m = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', flat)
     if m: data_operacao = m.group(1)
 
-    m = re.search(r'(XP INVESTIMENTOS|CLEAR CORRETORA|NU INVEST|MODALMAIS)', flat, re.IGNORECASE)
+    # MODIFICADO: Regex mais abrangente para a corretora Clear.
+    m = re.search(r'(XP INVESTIMENTOS|CLEAR|NU INVEST|MODALMAIS)', flat, re.IGNORECASE)
     if m: corretora = m.group(1).title()
 
-    m = re.search(r'(?:IRRF|I\.?R\.?R\.?F)\s*(?:day\s*trade|s/?\s*opera[çc][õo]es)?\D*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})', flat, re.IGNORECASE)
-    if m: irrf = m.group(1)
+    # MODIFICADO: Regex para aceitar tanto 'IRRF' quanto 'LRRF' (usado pela Clear).
+    m = re.search(r'(?:(I|L)\.?R\.?R\.?F)\s*(?:day\s*trade|s/?\s*opera[çc][õo]es)?\D*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})', flat, re.IGNORECASE)
+    if m: irrf = m.group(2) # Captura o segundo grupo, que é o valor
 
     for kw in ['Taxa de liquidação', 'Emolumentos', 'Taxa operacional', 'Outros']:
         mt = re.search(rf'{kw}.*?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}}|\d+,\d{{2}})', flat, re.IGNORECASE)
@@ -46,35 +49,60 @@ def extract_data_from_brokerage_note(text: str):
             total_taxas += float(valor)
 
     negociacoes = []
-    ticker_regex = re.compile(r'\b([A-Z]{4}\d{1,2})\b')
+    
+    # --- INÍCIO DA LÓGICA ESPECÍFICA PARA A CLEAR ---
+    if corretora == "Clear":
+        ticker_regex = re.compile(r'([A-Z]{4}\d{1,2})')
+        ticker_match_from_filename = ticker_regex.search(filename.upper())
+        ticker = ticker_match_from_filename.group(1) if ticker_match_from_filename else "N/A"
 
-    for i, ln in enumerate(lines):
-        tick_match = ticker_regex.search(ln)
-        if tick_match:
-            ticker = tick_match.group(1)
-            qtd, preco, operacao = None, None, "Não encontrado"
+        trade_lines_text = re.search(r'Negócios realizados(.*?)Resumo dos Negócios', text, re.DOTALL)
+        if trade_lines_text:
+            trade_lines = trade_lines_text.group(1).splitlines()
+            for ln in trade_lines:
+                # Procura por linhas que contenham o padrão de negociação da Clear
+                trade_match = re.search(r'BOVESPA\s+([CV])\s+\w+\s+.*?\s+(\d+)\s+([\d,.]+)\s+', ln)
+                if trade_match:
+                    operacao_char = trade_match.group(1)
+                    operacao = "Compra" if operacao_char == "C" else "Venda"
+                    qtd = trade_match.group(2)
+                    preco = trade_match.group(3)
+                    
+                    negociacoes.append({
+                        "Ativo": ticker, "Operacao": operacao,
+                        "Quantidade": qtd, "Valor Unitário": preco
+                    })
+    # --- FIM DA LÓGICA ESPECÍFICA PARA A CLEAR ---
+    else:
+        # Lógica original para XP e outras corretoras
+        ticker_regex = re.compile(r'\b([A-Z]{4}\d{1,2})\b')
+        for i, ln in enumerate(lines):
+            tick_match = ticker_regex.search(ln)
+            if tick_match:
+                ticker = tick_match.group(1)
+                qtd, preco, operacao = None, None, "Não encontrado"
 
-            if re.search(r'\bC\b', ln): operacao = "Compra"
-            elif re.search(r'\bV\b', ln): operacao = "Venda"
-            
-            pattern_string = re.escape(ticker) + r'\D+(\d+)\D+(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})'
-            qp_match = re.search(pattern_string, ln)
+                if re.search(r'\bC\b', ln): operacao = "Compra"
+                elif re.search(r'\bV\b', ln): operacao = "Venda"
+                
+                pattern_string = re.escape(ticker) + r'\D+(\d+)\D+(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})'
+                qp_match = re.search(pattern_string, ln)
 
-            if qp_match:
-                qtd, preco = qp_match.group(1), qp_match.group(2)
-            else:
-                qtd_match = re.search(rf'{re.escape(ticker)}\D+(\d+)', ln)
-                if qtd_match: qtd = qtd_match.group(1)
-                preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', ln, re.IGNORECASE)
-                if not preco_match and i + 1 < len(lines):
-                    preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', lines[i+1], re.IGNORECASE)
-                if preco_match: preco = preco_match.group(1)
+                if qp_match:
+                    qtd, preco = qp_match.group(1), qp_match.group(2)
+                else:
+                    qtd_match = re.search(rf'{re.escape(ticker)}\D+(\d+)', ln)
+                    if qtd_match: qtd = qtd_match.group(1)
+                    preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', ln, re.IGNORECASE)
+                    if not preco_match and i + 1 < len(lines):
+                        preco_match = re.search(r'(?:Pre[cç]o|Valor\s*Unit[aá]rio)\D{0,60}?(\d{1,3}(?:\.\d{3})*,\d{2})', lines[i+1], re.IGNORECASE)
+                    if preco_match: preco = preco_match.group(1)
 
-            negociacoes.append({
-                "Ativo": ticker, "Operacao": operacao,
-                "Quantidade": qtd if qtd else "Não encontrado",
-                "Valor Unitário": preco if preco else "Não encontrado"
-            })
+                negociacoes.append({
+                    "Ativo": ticker, "Operacao": operacao,
+                    "Quantidade": qtd if qtd else "Não encontrado",
+                    "Valor Unitário": preco if preco else "Não encontrado"
+                })
 
     return {
         "Data da Operação": data_operacao, "Corretora": corretora,
@@ -103,30 +131,34 @@ def handle_file_upload():
                             if t: text += t + "\n"
                 except Exception: text = ""
                 if not text.strip(): text = extract_text_with_ocr(file_bytes)
-                if text.strip(): processed_notes.append(extract_data_from_brokerage_note(text))
+                # MODIFICADO: Passa o nome do arquivo para a função de extração.
+                if text.strip(): processed_notes.append(extract_data_from_brokerage_note(text, file.filename))
             except Exception: continue
     
     flat_trades = []
     for note in processed_notes:
-        corretora_transformed = "XPI" if note.get("Corretora") == "Xp Investimentos" else note.get("Corretora")
+        # MODIFICADO: Lógica de transformação de nome de corretora para abranger Clear
+        corretora_transformed = note.get("Corretora")
+        if corretora_transformed == "Xp Investimentos":
+            corretora_transformed = "XPI"
         
         # --- INÍCIO DA LÓGICA DE TAXA PROPORCIONAL ---
         total_taxas_nota_float = float(note.get("Total Taxas", "0,00").replace(',', '.'))
         
-        # 1. Calcula o valor total da nota e armazena o valor de cada operação
         valor_total_nota = 0
         operacoes_com_valor = []
         for trade in note.get("Negociacoes", []):
             try:
+                # MODIFICADO: Limpa o valor do preço (remove pontos de milhar) antes de converter
+                preco_str = trade.get("Valor Unitário", "0").replace('.', '').replace(',', '.')
                 quantidade = int(trade.get("Quantidade", 0))
-                preco = float(trade.get("Valor Unitário", "0").replace(',', '.'))
+                preco = float(preco_str)
                 valor_operacao = quantidade * preco
                 valor_total_nota += valor_operacao
                 operacoes_com_valor.append({"trade": trade, "valor_operacao": valor_operacao})
             except (ValueError, TypeError):
                 operacoes_com_valor.append({"trade": trade, "valor_operacao": 0})
 
-        # 2. Itera sobre as operações para montar a saída com a taxa proporcional
         for item in operacoes_com_valor:
             trade = item["trade"]
             valor_operacao = item["valor_operacao"]
@@ -147,7 +179,7 @@ def handle_file_upload():
                 "Ticker": trade.get("Ativo"),
                 "Quantidade negociado": trade.get("Quantidade"),
                 "Preço unitário negociado": trade.get("Valor Unitário"),
-                "Taxas": taxa_proporcional_str, # <- Usa o novo valor calculado
+                "Taxas": taxa_proporcional_str,
                 "IRRF": note.get("IRRF"),
                 "Split Ratio": "1",
                 "Corretora": corretora_transformed
