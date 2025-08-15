@@ -38,6 +38,12 @@
 
             <div id="results-container" class="mt-8"></div>
 
+            <div id="copy-button-container" class="mt-4 text-center hidden">
+                <button id="copy-button" class="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    Copiar Dados
+                </button>
+            </div>
+
             <div id="message-box" class="p-4 mt-6 rounded-md hidden" role="alert">
                 <p id="message-content" class="text-sm"></p>
             </div>
@@ -53,6 +59,11 @@
             const resultsContainer = document.getElementById('results-container');
             const messageBox = document.getElementById('message-box');
             const messageContent = document.getElementById('message-content');
+
+            const copyButtonContainer = document.getElementById('copy-button-container');
+            const copyButton = document.getElementById('copy-button');
+
+            let currentTradesData = [];
 
             fileUpload.addEventListener('change', (event) => {
                 const files = event.target.files;
@@ -70,6 +81,7 @@
                 }
 
                 resultsContainer.innerHTML = '';
+                copyButtonContainer.classList.add('hidden');
                 processButton.disabled = true;
                 showMessage('Processando...', 'bg-blue-50 text-blue-700');
 
@@ -89,15 +101,54 @@
                         throw new Error(errorData.error || 'Erro no servidor');
                     }
 
-                    const trades = await response.json();
-                    renderConsolidatedTable(trades);
+                    currentTradesData = await response.json();
+                    renderConsolidatedTable(currentTradesData);
                     showMessage('Dados extraídos com sucesso!', 'bg-green-50 text-green-700');
 
                 } catch (error) {
                     showMessage(`Erro: ${error.message}`, 'bg-red-50 text-red-700');
+                    currentTradesData = [];
                 } finally {
                     processButton.disabled = false;
                 }
+            });
+
+            copyButton.addEventListener('click', () => {
+                if (currentTradesData.length === 0) {
+                    showMessage('Não há dados para copiar.', 'bg-yellow-50 text-yellow-700');
+                    return;
+                }
+
+                const columns = [
+                    { header: "Data da operação", key: "Data da operação" },
+                    { header: "Operação", key: "Operação" },
+                    { header: "Ticker", key: "Ticker" },
+                    { header: "Quantidade negociado", key: "Quantidade negociado" },
+                    { header: "Preço unitário negociado", key: "Preço unitário negociado" },
+                    { header: "Taxas", key: "Taxas" },
+                    { header: "IRRF", key: "IRRF" },
+                    { header: "Split Ratio", key: "Split Ratio" },
+                    { header: "Corretora", key: "Corretora" }
+                ];
+
+                // Cria as linhas de dados, também separadas por tabulações
+                const rows = currentTradesData.map(trade => {
+                    return columns.map(col => trade[col.key] || '').join('\t');
+                });
+
+                // ---- INÍCIO DA MODIFICAÇÃO ----
+                // Junta apenas as linhas de dados em um único texto, sem o cabeçalho.
+                const textToCopy = rows.join('\n');
+                // ---- FIM DA MODIFICAÇÃO ----
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showMessage('Dados copiados para a área de transferência!', 'bg-green-50 text-green-700');
+                    copyButton.textContent = 'Copiado!';
+                    setTimeout(() => { copyButton.textContent = 'Copiar Dados'; }, 2000);
+                }).catch(err => {
+                    showMessage('Falha ao copiar os dados. Verifique as permissões do navegador.', 'bg-red-50 text-red-700');
+                    console.error('Erro ao copiar:', err);
+                });
             });
 
             function showMessage(message, classes) {
@@ -109,11 +160,10 @@
             function renderConsolidatedTable(trades) {
                 if (!Array.isArray(trades) || trades.length === 0) {
                     resultsContainer.innerHTML = '<p class="text-center text-gray-500">Nenhuma negociação encontrada.</p>';
+                    copyButtonContainer.classList.add('hidden');
                     return;
                 }
 
-                // --------- INÍCIO DA CORREÇÃO ---------
-                // Define os cabeçalhos e as chaves de dados na mesma ordem para garantir o alinhamento correto.
                 const columns = [
                     { header: "Data da operação", key: "Data da operação" },
                     { header: "Operação", key: "Operação" },
@@ -132,7 +182,6 @@
                     const rowData = columns.map(col => `<td class="px-6 py-4 whitespace-nowrap text-left text-sm text-gray-700">${trade[col.key] || ''}</td>`).join('');
                     return `<tr>${rowData}</tr>`;
                 }).join('');
-                // --------- FIM DA CORREÇÃO ---------
 
                 resultsContainer.innerHTML = `
                     <div class="overflow-x-auto">
@@ -146,6 +195,8 @@
                         </table>
                     </div>
                 `;
+
+                copyButtonContainer.classList.remove('hidden');
             }
         });
     </script>
