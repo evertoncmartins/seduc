@@ -20,7 +20,6 @@ def extract_text_with_ocr(file_bytes):
     return text
 
 # ---------------- Parser ----------------
-# MODIFICADO: A função agora aceita o nome do arquivo para extrair o ticker nas notas da Clear.
 def extract_data_from_brokerage_note(text: str, filename: str):
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     flat = " ".join(lines)
@@ -34,13 +33,19 @@ def extract_data_from_brokerage_note(text: str, filename: str):
     if not m: m = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', flat)
     if m: data_operacao = m.group(1)
 
-    # MODIFICADO: Regex mais abrangente para a corretora Clear.
+    # ---- INÍCIO DA MODIFICAÇÃO ----
+    # Lógica para garantir que 'CLEAR' fique em maiúsculo e os outros nomes não.
     m = re.search(r'(XP INVESTIMENTOS|CLEAR|NU INVEST|MODALMAIS)', flat, re.IGNORECASE)
-    if m: corretora = m.group(1).title()
+    if m:
+        found_broker = m.group(1).upper()
+        if found_broker == 'CLEAR':
+            corretora = 'CLEAR'
+        else:
+            corretora = found_broker.title()
+    # ---- FIM DA MODIFICAÇÃO ----
 
-    # MODIFICADO: Regex para aceitar tanto 'IRRF' quanto 'LRRF' (usado pela Clear).
     m = re.search(r'(?:(I|L)\.?R\.?R\.?F)\s*(?:day\s*trade|s/?\s*opera[çc][õo]es)?\D*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})', flat, re.IGNORECASE)
-    if m: irrf = m.group(2) # Captura o segundo grupo, que é o valor
+    if m: irrf = m.group(2) 
 
     for kw in ['Taxa de liquidação', 'Emolumentos', 'Taxa operacional', 'Outros']:
         mt = re.search(rf'{kw}.*?(\d{{1,3}}(?:\.\d{{3}})*,\d{{2}}|\d+,\d{{2}})', flat, re.IGNORECASE)
@@ -50,8 +55,7 @@ def extract_data_from_brokerage_note(text: str, filename: str):
 
     negociacoes = []
     
-    # --- INÍCIO DA LÓGICA ESPECÍFICA PARA A CLEAR ---
-    if corretora == "Clear":
+    if corretora == "CLEAR":
         ticker_regex = re.compile(r'([A-Z]{4}\d{1,2})')
         ticker_match_from_filename = ticker_regex.search(filename.upper())
         ticker = ticker_match_from_filename.group(1) if ticker_match_from_filename else "N/A"
@@ -60,7 +64,6 @@ def extract_data_from_brokerage_note(text: str, filename: str):
         if trade_lines_text:
             trade_lines = trade_lines_text.group(1).splitlines()
             for ln in trade_lines:
-                # Procura por linhas que contenham o padrão de negociação da Clear
                 trade_match = re.search(r'BOVESPA\s+([CV])\s+\w+\s+.*?\s+(\d+)\s+([\d,.]+)\s+', ln)
                 if trade_match:
                     operacao_char = trade_match.group(1)
@@ -72,9 +75,7 @@ def extract_data_from_brokerage_note(text: str, filename: str):
                         "Ativo": ticker, "Operacao": operacao,
                         "Quantidade": qtd, "Valor Unitário": preco
                     })
-    # --- FIM DA LÓGICA ESPECÍFICA PARA A CLEAR ---
     else:
-        # Lógica original para XP e outras corretoras
         ticker_regex = re.compile(r'\b([A-Z]{4}\d{1,2})\b')
         for i, ln in enumerate(lines):
             tick_match = ticker_regex.search(ln)
@@ -131,25 +132,21 @@ def handle_file_upload():
                             if t: text += t + "\n"
                 except Exception: text = ""
                 if not text.strip(): text = extract_text_with_ocr(file_bytes)
-                # MODIFICADO: Passa o nome do arquivo para a função de extração.
                 if text.strip(): processed_notes.append(extract_data_from_brokerage_note(text, file.filename))
             except Exception: continue
     
     flat_trades = []
     for note in processed_notes:
-        # MODIFICADO: Lógica de transformação de nome de corretora para abranger Clear
         corretora_transformed = note.get("Corretora")
         if corretora_transformed == "Xp Investimentos":
             corretora_transformed = "XPI"
         
-        # --- INÍCIO DA LÓGICA DE TAXA PROPORCIONAL ---
         total_taxas_nota_float = float(note.get("Total Taxas", "0,00").replace(',', '.'))
         
         valor_total_nota = 0
         operacoes_com_valor = []
         for trade in note.get("Negociacoes", []):
             try:
-                # MODIFICADO: Limpa o valor do preço (remove pontos de milhar) antes de converter
                 preco_str = trade.get("Valor Unitário", "0").replace('.', '').replace(',', '.')
                 quantidade = int(trade.get("Quantidade", 0))
                 preco = float(preco_str)
@@ -169,7 +166,6 @@ def handle_file_upload():
                 taxa_proporcional = total_taxas_nota_float * proporcao
             
             taxa_proporcional_str = f"{taxa_proporcional:.2f}".replace('.', ',')
-            # --- FIM DA LÓGICA DE TAXA PROPORCIONAL ---
 
             operacao_transformed = "C" if trade.get("Operacao") == "Compra" else ("V" if trade.get("Operacao") == "Venda" else trade.get("Operacao"))
             
