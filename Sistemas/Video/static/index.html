@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<!-- http://127.0.0.1:5000/ -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player de Vídeo com Playlist</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #video-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        video {
+            max-width: 100%;
+            max-height: 100%;
+            outline: none;
+        }
+
+        #playlist-controls {
+            /* --- ESTA É A ALTERAÇÃO --- */
+            position: absolute;
+            top: 20px;
+            /* Movido para a parte de cima */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 21;
+
+            background: rgba(30, 30, 30, 0.8);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Não fica mais invisível por padrão */
+        }
+
+        #playlist-controls button {
+            background: #1db954;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.3s;
+            margin: 0 8px;
+        }
+
+        #playlist-controls button:hover {
+            background: #14833b;
+        }
+
+        #playlist-controls button.active {
+            background: #ff9800;
+        }
+
+        #start-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+            padding: 14px 28px;
+            border-radius: 10px;
+            background: #2196f3;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+        }
+
+        #start-overlay:hover {
+            background: #1769aa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="video-container">
+        <video id="video" controls></video>
+        <div id="start-overlay">▶ Iniciar Player</div>
+
+        <div id="playlist-controls">
+            <button id="skip">⏭ Pular Vídeo</button>
+            <button id="repeat">🔁 Repetir Vídeo</button>
+        </div>
+    </div>
+
+    <script>
+        const videoContainer = document.getElementById("video-container");
+        const video = document.getElementById("video");
+        const skipBtn = document.getElementById("skip");
+        const repeatBtn = document.getElementById("repeat");
+        const startOverlay = document.getElementById("start-overlay");
+
+        let videos = [];
+        let currentIndex = 0;
+
+        function loadVideo(index) {
+            if (videos.length > 0) {
+                const safeFilename = encodeURIComponent(videos[index]);
+                video.src = `/video/${safeFilename}`;
+                video.play();
+            }
+        }
+
+        function playNextVideo() {
+            if (videos.length > 0) {
+                currentIndex = (currentIndex + 1) % videos.length;
+                loadVideo(currentIndex);
+            }
+        }
+
+        async function initializeApp() {
+            try {
+                const response = await fetch('/videos');
+                if (!response.ok) throw new Error('Falha ao buscar a lista de vídeos.');
+                videos = await response.json();
+
+                if (videos.length > 0) {
+                    startOverlay.addEventListener('click', startPlayer, { once: true });
+                } else {
+                    startOverlay.textContent = "Nenhum vídeo encontrado!";
+                }
+            } catch (error) {
+                startOverlay.textContent = "Erro ao carregar vídeos.";
+            }
+        }
+
+        function startPlayer() {
+            startOverlay.style.display = "none";
+            loadVideo(currentIndex);
+        }
+
+        initializeApp();
+
+        skipBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            playNextVideo();
+        });
+
+        repeatBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            video.loop = !video.loop;
+            repeatBtn.classList.toggle("active");
+        });
+
+        video.loop = false;
+
+        video.addEventListener("ended", () => {
+            if (!video.loop) {
+                playNextVideo();
+            }
+        });
+    </script>
+</body>
+
+</html>
