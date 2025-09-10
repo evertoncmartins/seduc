@@ -1,3 +1,5 @@
+
+
 peso = float(input('Digite o peso em kg: '))
 altura = float(input('Digite a sua altura em metros: '))
 
