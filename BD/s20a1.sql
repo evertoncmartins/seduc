@@ -101,7 +101,7 @@ DELETE FROM pedidos WHERE id_pedido = 1;
 select * from pedidos;
 
 -- (opção segura) apagar e recriar o banco antes de importar
-.\mysql -u root -p -e "DROP DATABASE IF EXISTS LojaXYZ; CREATE DATABASE LojaXYZ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p -e "DROP DATABASE IF EXISTS LojaXYZ; CREATE DATABASE LojaXYZ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 -- importa o backup (arquivo gerado na Etapa 2) para o servidor MySQL
 mysql -u root -p LojaXYZ < "%USERPROFILE%\Downloads\backup_lojaXYZ.sql"
@@ -133,4 +133,4 @@ mysqldump -u root -p --single-transaction LojaXYZ NovosProdutos > "%USERPROFILE%
 DROP TABLE IF EXISTS NovosProdutos;   -- simula que a tabela foi excluída
 
 -- importa o backup incremental (arquivo gerado acima) para o servidor MySQL
-mysql -u root -p LojaXYZ < "%USERPROFILE%\Downloads\backup_lojaXYZ_NovosProdutos.sql"
+  mysql -u root -p LojaXYZ < "%USERPROFILE%\Downloads\backup_lojaXYZ_NovosProdutos.sql"
