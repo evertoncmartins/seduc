@@ -1,3 +1,4 @@
+# Importando a biblioteca ABC para criar uma classe abstrata
 from abc import ABC, abstractmethod
 
 # Classe base abstrata Produto
@@ -40,16 +41,14 @@ class Alimento(Produto):
 
 
 def mostrar_preco_com_imposto(produto):
-    imposto = produto.calcular_imposto()
-    preco_final = produto.preco + imposto
-    print(f"{produto.nome}: Preço sem imposto: R${produto.preco:.2f}, Imposto: R${
-          imposto:.2f}, Preço final: R${preco_final:.2f}")
+    preco_final = produto.preco + produto.calcular_imposto()
+    print(f"{produto.nome}: Preço final: R${preco_final:.2f}")
 
 
 # Criando objetos das subclasses
-livro = Livro("O Senhor dos Anéis", 50.00)
-eletronico = Eletronico("Notebook", 3000.00)
-alimento = Alimento("Maçã", 5.00)
+livro = Livro("Harry Potter", 50.00)
+eletronico = Eletronico("Notebook", 5000.00)
+alimento = Alimento("Banana", 5.00)
 
 # Demonstrando polimorfismo
 mostrar_preco_com_imposto(livro)
