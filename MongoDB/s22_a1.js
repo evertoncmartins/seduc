@@ -20,7 +20,7 @@
 }
 
 // A) Ver o pedido completo (findOne)
-db.Pedidos.findOne({ pedido_id: 1 })
+{pedido_id: 1, status: 1, itens: 1}
 
 //B) Agregação: trazer os nomes dos produtos + total do pedido (pipeline para a aba Aggregations ou aggregate() no shell)
 // Cole esse pipeline na aba Aggregations da coleção Pedidos
