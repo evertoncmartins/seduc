@@ -1,4 +1,4 @@
-Saída// O comando SET armazena um único valor associado a uma chave. Se você precisa de um campo único, como o nome de um produto, o uso de uma string é apropriado.
+// O comando SET armazena um único valor associado a uma chave. Se você precisa de um campo único, como o nome de um produto, o uso de uma string é apropriado.
 
 // Comando para armazenar dados (SET):
 SET produto:123:nome "Camiseta"
