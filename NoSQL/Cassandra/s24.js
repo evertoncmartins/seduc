@@ -34,7 +34,7 @@ SADD categorias:roupas "Camisetas" "Calças" "Tênis"
 SISMEMBER categorias:roupas "Camisetas"
 // Saída Esperada: (integer) 1 (Se o item existir, retorna 1. Se não, 0.)
 
-//  Hashes
+// Hashes
 // Hashes são a estrutura ideal para armazenar múltiplos campos e valores em uma única chave. É a melhor forma de representar um objeto como um produto, com seus diversos atributos (nome, preço, estoque, etc.).
 // Comando para definir um campo em um hash (HSET):
 HSET produto:123 nome "Camiseta" preco 39.99 estoque 100
