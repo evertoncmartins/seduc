@@ -39,7 +39,6 @@
 // Simular as buscas:
 { "categoria": "Computadores" }
 
-
 // UPDATE: 
 
 // No campo Filter o MongoDB, digite: 
