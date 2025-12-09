@@ -1,5 +1,5 @@
 /* =========================================
-   LÓGICA DE NAVEGAÇÃO (SPA)
+   1. NAVEGAÇÃO SPA
 ========================================= */
 const landingView = document.getElementById('landing-view');
 const studioView = document.getElementById('studio-view');
@@ -7,18 +7,17 @@ const studioView = document.getElementById('studio-view');
 function openStudio() {
     landingView.classList.add('hidden');
     studioView.classList.remove('hidden');
-    studioView.classList.add('fade-in');
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
 }
 
 function closeStudio() {
     studioView.classList.add('hidden');
     landingView.classList.remove('hidden');
-    landingView.classList.add('fade-in');
+    window.scrollTo(0, 0);
 }
 
 /* =========================================
-   DARK MODE MANAGER
+   2. DARK MODE
 ========================================= */
 const themeBtns = document.querySelectorAll('.theme-toggle');
 const html = document.documentElement;
@@ -37,21 +36,19 @@ function updateThemeIcons(theme) {
 function setTheme(theme) {
     if (theme === 'dark') {
         html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('selected-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
     } else {
         html.removeAttribute('data-theme');
-        localStorage.setItem('selected-theme', 'light');
+        localStorage.setItem('theme', 'light');
     }
     updateThemeIcons(theme);
 }
 
-const savedTheme = localStorage.getItem('selected-theme');
+const savedTheme = localStorage.getItem('theme');
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
     setTheme('dark');
-} else {
-    setTheme('light');
 }
 
 themeBtns.forEach(btn => {
@@ -62,7 +59,20 @@ themeBtns.forEach(btn => {
 });
 
 /* =========================================
-   LÓGICA DO ESTÚDIO (APP)
+   3. ACCORDION FAQ
+========================================= */
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        item.classList.toggle('active');
+        document.querySelectorAll('.faq-item').forEach(other => {
+            if(other !== item) other.classList.remove('active');
+        });
+    });
+});
+
+/* =========================================
+   4. APP LOGIC
 ========================================= */
 const PRICE_PER_UNIT = 2.50;
 let uploadedFiles = [];
@@ -76,16 +86,14 @@ const priceDisplay = document.getElementById('price-display');
 const btnCheckout = document.getElementById('btn-checkout');
 const btnClearAll = document.getElementById('btn-clear-all');
 
-// Eventos de Upload
 if (uploadTrigger && fileInput) {
     uploadTrigger.addEventListener('click', () => fileInput.click());
 
     fileInput.addEventListener('change', (e) => {
         handleFiles(e.target.files);
-        fileInput.value = ''; 
+        fileInput.value = '';
     });
 
-    // Drag & Drop
     uploadTrigger.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadTrigger.style.borderColor = 'var(--accent)';
@@ -100,10 +108,9 @@ if (uploadTrigger && fileInput) {
     });
 }
 
-// Evento Limpar Tudo
 if (btnClearAll) {
     btnClearAll.addEventListener('click', () => {
-        if(confirm('Tem certeza que deseja remover todas as fotos?')) {
+        if(confirm('Remover todas as fotos?')) {
             uploadedFiles = [];
             renderGrid();
             updateSummary();
@@ -111,7 +118,6 @@ if (btnClearAll) {
     });
 }
 
-// Funções Principais
 function handleFiles(files) {
     Array.from(files).forEach(file => {
         if(file.type.startsWith('image/')) {
@@ -154,22 +160,22 @@ function updateSummary() {
     const count = uploadedFiles.length;
     const total = count * PRICE_PER_UNIT;
     
-    countDisplay.innerText = count;
+    countDisplay.innerText = `${count} foto${count !== 1 ? 's' : ''}`;
     priceDisplay.innerText = total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
     
     if(count > 0) {
         btnCheckout.disabled = false;
-        btnCheckout.innerText = `Finalizar Pedido (${count})`;
+        btnCheckout.innerHTML = `Pagar ${priceDisplay.innerText}`;
         if(btnClearAll) btnClearAll.classList.remove('hidden');
     } else {
         btnCheckout.disabled = true;
-        btnCheckout.innerText = 'Finalizar Pedido';
+        btnCheckout.innerText = 'Finalizar';
         if(btnClearAll) btnClearAll.classList.add('hidden');
     }
 }
 
 if(btnCheckout) {
     btnCheckout.addEventListener('click', () => {
-        alert(`Redirecionando para pagamento...\nTotal: ${priceDisplay.innerText}`);
+        alert(`Indo para o checkout...\nValor Total: ${priceDisplay.innerText}`);
     });
 }

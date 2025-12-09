@@ -2,18 +2,18 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magneto | Suas Memórias na Geladeira</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Imãs de geladeira personalizados com suas fotos.">
+    <title>Magneto | Design na sua Geladeira</title>
     
-    <!-- Fontes: Plus Jakarta Sans (Mkt) & Inter (App) -->
+    <!-- Fontes Premium -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Ícones (Phosphor Icons) -->
+    <!-- Ícones -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- CSS Principal -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -30,37 +30,40 @@
                 <nav class="nav">
                     <ul class="nav__list">
                         <li><a href="#inicio" class="nav__link">Início</a></li>
-                        <li><a href="#diferenciais" class="nav__link">Diferenciais</a></li>
-                        <!-- Botão Tema LP -->
-                        <li>
-                            <button class="theme-toggle" aria-label="Alterar Tema">
-                                <i class="ph-bold ph-moon"></i>
-                            </button>
-                        </li>
-                        <li><button class="nav__btn-studio" onclick="openStudio()">Ir para o Estúdio</button></li>
+                        <li><a href="#diferenciais" class="nav__link">Vantagens</a></li>
+                        <li><a href="#qualidade" class="nav__link">Qualidade</a></li>
+                        <li><a href="#depoimentos" class="nav__link">Clientes</a></li>
+                        <li><a href="#faq" class="nav__link">Dúvidas</a></li>
                     </ul>
                 </nav>
 
-                <div class="header__cta">
-                    <button class="btn btn--primary" onclick="openStudio()">Criar Agora</button>
+                <div class="header__actions">
+                    <button class="theme-toggle" aria-label="Alternar Tema">
+                        <i class="ph-bold ph-moon"></i>
+                    </button>
+                    <button class="btn btn--sm btn--primary nav__btn-studio" onclick="openStudio()">
+                        Ir para Estúdio
+                    </button>
                 </div>
             </div>
         </header>
 
         <main>
             <!-- Hero Section -->
-            <section class="hero" id="inicio">
+            <section class="hero section" id="inicio">
                 <div class="container hero__container">
                     <div class="hero__content">
-                        <span class="badge-new">✨ Nova tecnologia de impressão</span>
-                        <h1>Tire suas fotos da nuvem e coloque na <span class="text-gradient">geladeira.</span></h1>
-                        <p>Transforme seu rolo da câmera em decoração premium. Imãs quadrados (50x50mm) com acabamento brilhante e proteção UV.</p>
+                        <div class="badge-wrapper">
+                            <span class="badge-new">✨ Tecnologia HydroShield™</span>
+                        </div>
+                        <h1>Suas melhores memórias na <span class="text-gradient">geladeira.</span></h1>
+                        <p>Tire as fotos da nuvem. Imãs quadrados (50x50mm) com qualidade de galeria, proteção UV e verso 100% magnético.</p>
                         
                         <div class="hero__btns">
                             <button class="btn btn--primary btn--lg" onclick="openStudio()">
-                                <i class="ph-bold ph-upload-simple"></i> Começar a Criar
+                                <i class="ph-bold ph-upload-simple"></i> Criar Agora
                             </button>
-                            <a href="#diferenciais" class="btn btn--outline">Saber mais</a>
+                            <a href="#diferenciais" class="btn btn--outline btn--lg">Ver vantagens</a>
                         </div>
 
                         <div class="trust-badge">
@@ -69,63 +72,161 @@
                                 <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
                                 <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="User">
                             </div>
-                            <p>Mais de <strong>15.000 imãs</strong> entregues</p>
+                            <p><strong>+15k</strong> clientes felizes</p>
                         </div>
                     </div>
                     
                     <div class="hero__image">
                         <div class="img-card">
-                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000&auto=format&fit=crop" alt="Geladeira decorada">
+                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000&auto=format&fit=crop" alt="Geladeira com imãs">
                             <div class="floating-tag">
-                                <i class="ph-fill ph-heart"></i> Feito à mão
+                                <div class="icon-circle-sm"><i class="ph-fill ph-heart"></i></div>
+                                <span>Feito à mão no Brasil</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Diferenciais -->
-            <section class="features section" id="diferenciais">
+            <!-- Diferenciais (Cards) -->
+            <section class="section features-cards" id="diferenciais">
                 <div class="container">
-                    <div class="section-title">
-                        <h2>Simples, bonito e durável.</h2>
-                        <p>Não é apenas um imã, é uma peça de design.</p>
+                    <div class="section-header">
+                        <h2>Por que escolher a Magneto?</h2>
+                        <p>Pensamos em cada detalhe do produto.</p>
                     </div>
 
                     <div class="features__grid">
                         <div class="feature-card">
                             <div class="icon-box"><i class="ph-duotone ph-image"></i></div>
-                            <h3>Qualidade Fotográfica</h3>
-                            <p>Impressão de alta definição que não desbota com o tempo.</p>
+                            <h3>Resolução HD</h3>
+                            <p>Processo de revelação química digital. Suas fotos com cores vivas e nitidez absurda.</p>
                         </div>
                         <div class="feature-card">
                             <div class="icon-box"><i class="ph-duotone ph-magnet"></i></div>
-                            <h3>Verso 100% Magnético</h3>
-                            <p>Fixação forte. Segura papéis e fotos sem escorregar.</p>
+                            <h3>Fixação Total</h3>
+                            <p>Verso 100% coberto por manta magnética de alta gramatura. Não cai e não escorrega.</p>
                         </div>
                         <div class="feature-card">
                             <div class="icon-box"><i class="ph-duotone ph-package"></i></div>
                             <h3>Entrega Expressa</h3>
-                            <p>Produzimos em 24h e enviamos para todo o Brasil.</p>
+                            <p>Produção em 24h e envio rápido com rastreamento para todo o Brasil.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Specs / Detalhes Técnicos -->
+            <section class="section specs-section" id="qualidade">
+                <div class="container specs__container">
+                    <div class="specs__image">
+                        <img src="https://images.unsplash.com/photo-1616627547584-bf28cee262db?q=80&w=800&auto=format&fit=crop" alt="Detalhe da impressão">
+                        <div class="specs__badge">
+                            <i class="ph-fill ph-drop"></i> À prova d'água
+                        </div>
+                    </div>
+                    <div class="specs__content">
+                        <span class="section-subtitle">Durabilidade Extrema</span>
+                        <h2>Não é só papel.<br>É <span class="text-gradient">eterno.</span></h2>
+                        <ul class="specs__list">
+                            <li>
+                                <div class="check-icon"><i class="ph-bold ph-check"></i></div>
+                                <div>
+                                    <strong>Proteção UV</strong>
+                                    <p>Suas fotos não desbotam, mesmo se sua cozinha pegar sol.</p>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="check-icon"><i class="ph-bold ph-check"></i></div>
+                                <div>
+                                    <strong>Blindagem HydroShield™</strong>
+                                    <p>Acidente com água? Sem problemas. É só passar um pano.</p>
+                                </div>
+                            </li>
+                        </ul>
+                        <button class="btn btn--primary" onclick="openStudio()">Personalizar meu Kit</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Depoimentos -->
+            <section class="section bg-alt" id="depoimentos">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Quem comprou, amou.</h2>
+                        <p>Nossa maior propaganda são nossos clientes.</p>
+                    </div>
+
+                    <div class="reviews__grid">
+                        <div class="review-card">
+                            <div class="stars">★★★★★</div>
+                            <p class="review-text">"Qualidade surreal! As fotos do meu casamento ficaram lindas na geladeira. O brilho é perfeito."</p>
+                            <div class="review-author">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Foto">
+                                <div><strong>Ana Clara</strong><span>São Paulo, SP</span></div>
+                            </div>
+                        </div>
+                        <div class="review-card">
+                            <div class="stars">★★★★★</div>
+                            <p class="review-text">"O imã é bem grosso, segura firme mesmo. A impressão superou minhas expectativas."</p>
+                            <div class="review-author">
+                                <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Foto">
+                                <div><strong>Roberto F.</strong><span>Curitiba, PR</span></div>
+                            </div>
+                        </div>
+                        <div class="review-card">
+                            <div class="stars">★★★★★</div>
+                            <p class="review-text">"Amei a ferramenta de criar o pedido. Muito simples e mostra exatamente como vai ficar."</p>
+                            <div class="review-author">
+                                <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Foto">
+                                <div><strong>Juliana M.</strong><span>Rio de Janeiro, RJ</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section class="section" id="faq">
+                <div class="container faq__container">
+                    <div class="section-header">
+                        <h2>Dúvidas Frequentes</h2>
+                    </div>
+                    <div class="faq-list">
+                        <div class="faq-item">
+                            <button class="faq-question">Qual o prazo de produção? <i class="ph-bold ph-caret-down"></i></button>
+                            <div class="faq-answer"><p>Produzimos e despachamos em até 24 horas úteis após a confirmação do pagamento.</p></div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-question">Qual o tamanho do imã? <i class="ph-bold ph-caret-down"></i></button>
+                            <div class="faq-answer"><p>O tamanho padrão é 50x50mm (quadrado), perfeito para fotos do Instagram e galerias de celular.</p></div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-question">As fotos perdem qualidade? <i class="ph-bold ph-caret-down"></i></button>
+                            <div class="faq-answer"><p>Não! Usamos impressão de alta resolução (300dpi). Se sua foto estiver muito ruim, nosso sistema avisa.</p></div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-question">Vocês enviam para todo o Brasil? <i class="ph-bold ph-caret-down"></i></button>
+                            <div class="faq-answer"><p>Sim! Enviamos via Correios (Sedex/PAC) ou transportadoras parceiras, com código de rastreio.</p></div>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- CTA Final -->
-            <section class="cta-section">
+            <section class="section pt-0">
                 <div class="container">
                     <div class="cta-box">
-                        <h2>Pronto para eternizar momentos?</h2>
-                        <p>Acesse nosso Estúdio Interativo e veja como suas fotos ficam antes de comprar.</p>
-                        <button class="btn btn--white btn--lg" onclick="openStudio()">Abir Estúdio <i class="ph-bold ph-arrow-right"></i></button>
+                        <h2>Sua geladeira merece esse upgrade</h2>
+                        <p>Crie seus imãs agora mesmo com desconto de primeira compra.</p>
+                        <button class="btn btn--white btn--lg" onclick="openStudio()">Criar Meus Imãs <i class="ph-bold ph-arrow-right"></i></button>
                     </div>
                 </div>
             </section>
 
-            <footer class="lp-footer">
+            <footer class="footer">
                 <div class="container">
-                    <p>&copy; 2025 Magneto. Todos os direitos reservados.</p>
+                    <p>&copy; 2025 Magneto. Feito com <i class="ph-fill ph-heart"></i> no Brasil.</p>
                 </div>
             </footer>
         </main>
@@ -135,75 +236,74 @@
          VIEW 2: ESTÚDIO (APP INTERATIVO)
     ========================================== -->
     <div id="studio-view" class="hidden">
-        
         <div class="app-layout">
-            <!-- Sidebar -->
+            
+            <div class="app-header-mobile">
+                <button class="btn-icon" onclick="closeStudio()"><i class="ph-bold ph-arrow-left"></i></button>
+                <span class="app-title">Estúdio</span>
+                <button class="theme-toggle btn-icon"><i class="ph-bold ph-moon"></i></button>
+            </div>
+
             <aside class="sidebar">
-                <div class="sidebar-header">
+                <div class="sidebar-top desktop-only">
                     <button class="btn-back" onclick="closeStudio()">
-                        <i class="ph-bold ph-arrow-left"></i> Voltar
+                        <i class="ph-bold ph-arrow-left"></i> Voltar ao site
                     </button>
-                    
-                    <!-- Botão Tema App -->
                     <button class="theme-toggle" aria-label="Alterar Tema">
                         <i class="ph-bold ph-moon"></i>
                     </button>
                 </div>
-                
-                <div class="brand-small">magneto<span class="highlight">Studio</span></div>
 
-                <div class="control-panel">
-                    <div class="product-info">
+                <div class="sidebar-content">
+                    <div class="product-info desktop-only">
                         <h3>Imã Quadrado</h3>
-                        <p class="specs">50x50mm • Borda Branca</p>
+                        <p>50x50mm • Brilhante</p>
                     </div>
 
-                    <!-- Upload Box -->
-                    <div class="upload-trigger" id="upload-trigger">
-                        <input type="file" id="file-input" multiple accept="image/*" hidden>
-                        <div class="upload-content">
-                            <i class="ph-duotone ph-cloud-arrow-up upload-icon"></i>
-                            <h4>Adicionar Fotos</h4>
-                            <p>Arraste ou clique aqui</p>
+                    <div class="controls-wrapper">
+                        <!-- Upload -->
+                        <div class="upload-trigger" id="upload-trigger">
+                            <input type="file" id="file-input" multiple accept="image/*" hidden>
+                            <div class="upload-content">
+                                <i class="ph-duotone ph-plus-circle"></i>
+                                <span>Adicionar Fotos</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Resumo -->
-                    <div class="order-summary">
-                        <div class="summary-line">
-                            <span>Quantidade</span>
-                            <strong id="count-display">0</strong>
+                        <!-- Resumo -->
+                        <div class="order-summary">
+                            <div class="summary-info">
+                                <div class="count-price">
+                                    <strong id="count-display">0 fotos</strong>
+                                    <span id="price-display">R$ 0,00</span>
+                                </div>
+                                <small>R$ 2,50/un</small>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button id="btn-clear-all" class="btn-reset hidden" title="Limpar tudo">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                                <button class="btn-checkout" id="btn-checkout" disabled>
+                                    Finalizar
+                                </button>
+                            </div>
                         </div>
-                        <div class="summary-line total">
-                            <span>Total</span>
-                            <strong id="price-display">R$ 0,00</strong>
-                        </div>
-                        <small>R$ 2,50 / unidade</small>
-                        
-                        <!-- BOTÃO LIMPAR TUDO (Começa oculto) -->
-                        <button id="btn-clear-all" class="btn-reset hidden">
-                            <i class="ph-bold ph-trash"></i> Remover todas as fotos
-                        </button>
-                        
-                        <button class="btn-checkout" id="btn-checkout" disabled>
-                            Finalizar Pedido
-                        </button>
                     </div>
                 </div>
             </aside>
 
-            <!-- Área Visual -->
             <main class="workspace">
-                <div class="workspace-top">
+                <div class="workspace-header">
                     <h2>Pré-visualização</h2>
-                    <p>É assim que elas ficarão na sua geladeira</p>
+                    <p>Assim ficarão na sua geladeira</p>
                 </div>
 
                 <div class="magnet-grid" id="magnet-grid">
                     <div class="empty-state" id="empty-state">
-                        <i class="ph-duotone ph-images-square"></i>
-                        <h3>Comece adicionando fotos</h3>
-                        <p>Use o painel lateral para carregar suas memórias.</p>
+                        <div class="empty-icon"><i class="ph-duotone ph-images"></i></div>
+                        <h3>Sua coleção está vazia</h3>
+                        <p>Adicione fotos pelo painel.</p>
                     </div>
                 </div>
             </main>
