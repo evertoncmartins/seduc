@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magneto | Suas Memórias na Geladeira</title>
+    
+    <!-- Fontes: Plus Jakarta Sans (Marketing) & Inter (App) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- =========================================
+         VIEW 1: LANDING PAGE (MARKETING)
+    ========================================== -->
+    <div id="landing-view">
+        
+        <!-- Header Flutuante -->
+        <header class="header" id="header">
+            <div class="container header__container">
+                <a href="#" class="logo">magneto<span class="dot">.</span></a>
+
+                <nav class="nav">
+                    <ul class="nav__list">
+                        <li><a href="#inicio" class="nav__link">Início</a></li>
+                        <li><a href="#diferenciais" class="nav__link">Por que Magneto?</a></li>
+                        <li><a href="#depoimentos" class="nav__link">Clientes</a></li>
+                        <!-- Botão Especial do Menu -->
+                        <li><button class="nav__btn-studio" onclick="openStudio()">Ir para o Estúdio</button></li>
+                    </ul>
+                </nav>
+
+                <div class="header__cta">
+                    <button class="btn btn--primary" onclick="openStudio()">Criar Agora</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Hero Section -->
+            <section class="hero" id="inicio">
+                <div class="container hero__container">
+                    <div class="hero__content">
+                        <span class="badge-new">✨ Nova tecnologia de impressão</span>
+                        <h1>Tire suas fotos da nuvem e coloque na <span class="text-gradient">geladeira.</span></h1>
+                        <p>Transforme seu rolo da câmera em decoração premium. Imãs quadrados (50x50mm) com acabamento brilhante e proteção UV.</p>
+                        
+                        <div class="hero__btns">
+                            <button class="btn btn--primary btn--lg" onclick="openStudio()">
+                                <i class="ph-bold ph-upload-simple"></i> Começar a Criar
+                            </button>
+                            <a href="#diferenciais" class="btn btn--outline">Saber mais</a>
+                        </div>
+
+                        <div class="trust-badge">
+                            <div class="users-stack">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+                                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="User">
+                            </div>
+                            <p>Mais de <strong>15.000 imãs</strong> entregues</p>
+                        </div>
+                    </div>
+                    
+                    <div class="hero__image">
+                        <div class="img-card">
+                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000&auto=format&fit=crop" alt="Geladeira decorada">
+                            <div class="floating-tag">
+                                <i class="ph-fill ph-heart"></i> Feito à mão
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diferenciais -->
+            <section class="features section" id="diferenciais">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Simples, bonito e durável.</h2>
+                        <p>Não é apenas um imã, é uma peça de design.</p>
+                    </div>
+
+                    <div class="features__grid">
+                        <div class="feature-card">
+                            <div class="icon-box"><i class="ph-duotone ph-image"></i></div>
+                            <h3>Qualidade Fotográfica</h3>
+                            <p>Impressão de alta definição que não desbota com o tempo.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon-box"><i class="ph-duotone ph-magnet"></i></div>
+                            <h3>Verso 100% Magnético</h3>
+                            <p>Fixação forte. Segura papéis e fotos sem escorregar.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon-box"><i class="ph-duotone ph-package"></i></div>
+                            <h3>Entrega Expressa</h3>
+                            <p>Produzimos em 24h e enviamos para todo o Brasil.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Final -->
+            <section class="cta-section">
+                <div class="container">
+                    <div class="cta-box">
+                        <h2>Pronto para eternizar momentos?</h2>
+                        <p>Acesse nosso Estúdio Interativo e veja como suas fotos ficam antes de comprar.</p>
+                        <button class="btn btn--white btn--lg" onclick="openStudio()">Abir Estúdio <i class="ph-bold ph-arrow-right"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="lp-footer">
+                <div class="container">
+                    <p>&copy; 2025 Magneto. Todos os direitos reservados.</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- =========================================
+         VIEW 2: ESTÚDIO (APP INTERATIVO)
+         Inicialmente oculto (display: none via CSS)
+    ========================================== -->
+    <div id="studio-view" class="hidden">
+        
+        <div class="app-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <button class="btn-back" onclick="closeStudio()">
+                        <i class="ph-bold ph-arrow-left"></i> Voltar
+                    </button>
+                    <div class="brand-small">magneto<span class="highlight">Studio</span></div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="product-info">
+                        <h3>Imã Quadrado</h3>
+                        <p class="specs">50x50mm • Borda Branca</p>
+                    </div>
+
+                    <!-- Upload Box -->
+                    <div class="upload-trigger" id="upload-trigger">
+                        <input type="file" id="file-input" multiple accept="image/*" hidden>
+                        <div class="upload-content">
+                            <i class="ph-duotone ph-cloud-arrow-up upload-icon"></i>
+                            <h4>Adicionar Fotos</h4>
+                            <p>Arraste ou clique aqui</p>
+                        </div>
+                    </div>
+
+                    <!-- Resumo -->
+                    <div class="order-summary">
+                        <div class="summary-line">
+                            <span>Quantidade</span>
+                            <strong id="count-display">0</strong>
+                        </div>
+                        <div class="summary-line total">
+                            <span>Total</span>
+                            <strong id="price-display">R$ 0,00</strong>
+                        </div>
+                        <small>R$ 2,50 / unidade</small>
+                        
+                        <button class="btn-checkout" id="btn-checkout" disabled>
+                            Finalizar Pedido
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Área Visual -->
+            <main class="workspace">
+                <div class="workspace-top">
+                    <h2>Pré-visualização</h2>
+                    <p>É assim que elas ficarão na sua geladeira</p>
+                </div>
+
+                <div class="magnet-grid" id="magnet-grid">
+                    <div class="empty-state" id="empty-state">
+                        <i class="ph-duotone ph-images-square"></i>
+                        <h3>Comece adicionando fotos</h3>
+                        <p>Use o painel lateral para carregar suas memórias.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
