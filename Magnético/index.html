@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magneto | Suas Memórias na Geladeira</title>
     
-    <!-- Fontes: Plus Jakarta Sans (Marketing) & Inter (App) -->
+    <!-- Fontes: Plus Jakarta Sans (Mkt) & Inter (App) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Ícones -->
+    <!-- Ícones (Phosphor Icons) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <!-- CSS Principal -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,7 +23,6 @@
     ========================================== -->
     <div id="landing-view">
         
-        <!-- Header Flutuante -->
         <header class="header" id="header">
             <div class="container header__container">
                 <a href="#" class="logo">magneto<span class="dot">.</span></a>
@@ -30,10 +30,14 @@
                 <nav class="nav">
                     <ul class="nav__list">
                         <li><a href="#inicio" class="nav__link">Início</a></li>
-                        <li><a href="#diferenciais" class="nav__link">Por que Magneto?</a></li>
-                        <li><a href="#depoimentos" class="nav__link">Clientes</a></li>
-                        <!-- Botão Especial do Menu 
-                        <li><button class="nav__btn-studio" onclick="openStudio()">Ir para o Estúdio</button></li> -->
+                        <li><a href="#diferenciais" class="nav__link">Diferenciais</a></li>
+                        <!-- Botão Tema LP -->
+                        <li>
+                            <button class="theme-toggle" aria-label="Alterar Tema">
+                                <i class="ph-bold ph-moon"></i>
+                            </button>
+                        </li>
+                        <li><button class="nav__btn-studio" onclick="openStudio()">Ir para o Estúdio</button></li>
                     </ul>
                 </nav>
 
@@ -129,7 +133,6 @@
 
     <!-- =========================================
          VIEW 2: ESTÚDIO (APP INTERATIVO)
-         Inicialmente oculto (display: none via CSS)
     ========================================== -->
     <div id="studio-view" class="hidden">
         
@@ -140,8 +143,14 @@
                     <button class="btn-back" onclick="closeStudio()">
                         <i class="ph-bold ph-arrow-left"></i> Voltar
                     </button>
-                    <div class="brand-small">magneto<span class="highlight">Studio</span></div>
+                    
+                    <!-- Botão Tema App -->
+                    <button class="theme-toggle" aria-label="Alterar Tema">
+                        <i class="ph-bold ph-moon"></i>
+                    </button>
                 </div>
+                
+                <div class="brand-small">magneto<span class="highlight">Studio</span></div>
 
                 <div class="control-panel">
                     <div class="product-info">
@@ -170,6 +179,11 @@
                             <strong id="price-display">R$ 0,00</strong>
                         </div>
                         <small>R$ 2,50 / unidade</small>
+                        
+                        <!-- BOTÃO LIMPAR TUDO (Começa oculto) -->
+                        <button id="btn-clear-all" class="btn-reset hidden">
+                            <i class="ph-bold ph-trash"></i> Remover todas as fotos
+                        </button>
                         
                         <button class="btn-checkout" id="btn-checkout" disabled>
                             Finalizar Pedido

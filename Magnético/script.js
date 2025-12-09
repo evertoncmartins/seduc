@@ -5,19 +5,61 @@ const landingView = document.getElementById('landing-view');
 const studioView = document.getElementById('studio-view');
 
 function openStudio() {
-    // Esconde Landing, Mostra Studio
     landingView.classList.add('hidden');
     studioView.classList.remove('hidden');
     studioView.classList.add('fade-in');
-    window.scrollTo(0,0); // Reseta o scroll
+    window.scrollTo(0,0);
 }
 
 function closeStudio() {
-    // Esconde Studio, Mostra Landing
     studioView.classList.add('hidden');
     landingView.classList.remove('hidden');
     landingView.classList.add('fade-in');
 }
+
+/* =========================================
+   DARK MODE MANAGER
+========================================= */
+const themeBtns = document.querySelectorAll('.theme-toggle');
+const html = document.documentElement;
+
+function updateThemeIcons(theme) {
+    themeBtns.forEach(btn => {
+        const icon = btn.querySelector('i');
+        if (theme === 'dark') {
+            icon.classList.replace('ph-moon', 'ph-sun');
+        } else {
+            icon.classList.replace('ph-sun', 'ph-moon');
+        }
+    });
+}
+
+function setTheme(theme) {
+    if (theme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('selected-theme', 'dark');
+    } else {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('selected-theme', 'light');
+    }
+    updateThemeIcons(theme);
+}
+
+const savedTheme = localStorage.getItem('selected-theme');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+    setTheme('dark');
+} else {
+    setTheme('light');
+}
+
+themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        setTheme(isDark ? 'light' : 'dark');
+    });
+});
 
 /* =========================================
    LÓGICA DO ESTÚDIO (APP)
@@ -32,31 +74,42 @@ const emptyState = document.getElementById('empty-state');
 const countDisplay = document.getElementById('count-display');
 const priceDisplay = document.getElementById('price-display');
 const btnCheckout = document.getElementById('btn-checkout');
+const btnClearAll = document.getElementById('btn-clear-all');
 
 // Eventos de Upload
-uploadTrigger.addEventListener('click', () => fileInput.click());
+if (uploadTrigger && fileInput) {
+    uploadTrigger.addEventListener('click', () => fileInput.click());
 
-fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
-    fileInput.value = ''; 
-});
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+        fileInput.value = ''; 
+    });
 
-// Drag & Drop
-uploadTrigger.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadTrigger.style.background = '#EFF6FF';
-    uploadTrigger.style.borderColor = '#3B82F6';
-});
-uploadTrigger.addEventListener('dragleave', () => {
-    uploadTrigger.style.background = '#F9FAFB';
-    uploadTrigger.style.borderColor = '#E5E7EB';
-});
-uploadTrigger.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadTrigger.style.background = '#F9FAFB';
-    uploadTrigger.style.borderColor = '#E5E7EB';
-    if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-});
+    // Drag & Drop
+    uploadTrigger.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadTrigger.style.borderColor = 'var(--accent)';
+    });
+    uploadTrigger.addEventListener('dragleave', () => {
+        uploadTrigger.style.borderColor = 'var(--border)';
+    });
+    uploadTrigger.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadTrigger.style.borderColor = 'var(--border)';
+        if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+}
+
+// Evento Limpar Tudo
+if (btnClearAll) {
+    btnClearAll.addEventListener('click', () => {
+        if(confirm('Tem certeza que deseja remover todas as fotos?')) {
+            uploadedFiles = [];
+            renderGrid();
+            updateSummary();
+        }
+    });
+}
 
 // Funções Principais
 function handleFiles(files) {
@@ -107,13 +160,16 @@ function updateSummary() {
     if(count > 0) {
         btnCheckout.disabled = false;
         btnCheckout.innerText = `Finalizar Pedido (${count})`;
+        if(btnClearAll) btnClearAll.classList.remove('hidden');
     } else {
         btnCheckout.disabled = true;
         btnCheckout.innerText = 'Finalizar Pedido';
+        if(btnClearAll) btnClearAll.classList.add('hidden');
     }
 }
 
-// Botão Finalizar (Simulação)
-btnCheckout.addEventListener('click', () => {
-    alert(`Redirecionando para pagamento...\nTotal: ${priceDisplay.innerText}`);
-});
+if(btnCheckout) {
+    btnCheckout.addEventListener('click', () => {
+        alert(`Redirecionando para pagamento...\nTotal: ${priceDisplay.innerText}`);
+    });
+}
