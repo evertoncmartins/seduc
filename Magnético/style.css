@@ -140,20 +140,45 @@ button { font-family: var(--font-head); }
 .check-icon { min-width: 24px; height: 24px; background: #ECFDF5; color: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
 [data-theme="dark"] .check-icon { background: rgba(16, 185, 129, 0.2); }
 
-/* REVIEWS */
+/* CAROUSEL */
 .bg-alt { background: var(--bg-alt); }
 .section-header { text-align: center; margin-bottom: 3rem; max-width: 600px; margin-inline: auto; }
 .section-header h2 { font-family: var(--font-head); font-size: 2.5rem; margin-bottom: 0.5rem; }
 .section-header p { color: var(--text-muted); }
-.reviews__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-.review-card { background: var(--bg-surface); padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); transition: 0.3s; }
+
+.carousel-container { position: relative; max-width: 100%; margin: 0 auto; padding: 0 40px; }
+.carousel-track-container { overflow: hidden; width: 100%; }
+.carousel-track { display: flex; transition: transform 0.5s ease-in-out; width: 100%; }
+.carousel-slide { min-width: 100%; box-sizing: border-box; }
+.review-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+.review-card {
+    background: var(--bg-surface); padding: 2rem; border-radius: var(--radius);
+    border: 1px solid var(--border); transition: 0.3s; height: 100%;
+    display: flex; flex-direction: column;
+}
 .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
 .stars { color: #F59E0B; margin-bottom: 1rem; letter-spacing: 2px; }
-.review-text { font-style: italic; color: var(--text-muted); margin-bottom: 1.5rem; display: block; min-height: 80px; }
+.review-text { font-style: italic; color: var(--text-muted); margin-bottom: 1.5rem; display: block; flex: 1; }
 .review-author { display: flex; align-items: center; gap: 1rem; }
 .review-author img { width: 40px; height: 40px; border-radius: 50%; }
 .review-author strong { display: block; font-size: 0.95rem; color: var(--text-main); }
 .review-author span { font-size: 0.8rem; color: var(--text-muted); }
+
+.carousel-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: var(--bg-surface); border: 1px solid var(--border);
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    color: var(--text-main); box-shadow: var(--shadow); z-index: 10; transition: 0.3s;
+}
+.carousel-btn:hover { background: var(--bg-alt); color: var(--accent); }
+.prev-btn { left: 0; }
+.next-btn { right: 0; }
+
+.carousel-nav { display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; }
+.carousel-indicator { border: none; width: 10px; height: 10px; border-radius: 50%; background: var(--border); cursor: pointer; transition: 0.3s; }
+.carousel-indicator.current-slide { background: var(--accent); transform: scale(1.2); }
 
 /* FAQ */
 .faq__container { max-width: 700px; }
@@ -309,30 +334,33 @@ button { font-family: var(--font-head); }
     .nav__list { display: none; }
     .hero h1 { font-size: 2.5rem; }
     
-    /* 1. Hero Image acima do Texto no Mobile */
-    .hero__container {
-        display: flex;
-        flex-direction: column;
-    }
-    .hero__image {
-        order: -1; /* Joga a imagem para o topo */
-        width: 100%;
-        margin-bottom: 2rem;
-    }
+    /* Hero Image acima do Texto */
+    .hero__container { display: flex; flex-direction: column; }
+    .hero__image { order: -1; width: 100%; margin-bottom: 2rem; }
 
     .features__grid { grid-template-columns: 1fr; }
     
-    /* Specs Image acima do Texto */
+    /* Specs Image acima do Texto + Correção de Corte */
     .specs__container { display: flex; flex-direction: column; gap: 2rem; }
-    .specs__image { order: -1; width: 100%; overflow: hidden; }
+    .specs__image { 
+        order: -1; width: 100%; 
+        overflow: visible; /* IMPORTANTE: Permite que o selo saia da caixa se precisar */
+        margin-bottom: 2rem;
+    }
     .specs__image img { width: 100%; }
-    /* Ajuste do badge para não quebrar a tela */
-    .specs__badge { right: 0; bottom: -20px; top: auto; }
+    
+    /* Ajuste do selo para ficar DENTRO da área da imagem no mobile */
+    .specs__badge { 
+        top: auto; 
+        bottom: 15px; /* Sobe um pouco para ficar sobre a imagem */
+        right: 15px; /* Entra um pouco para esquerda */
+    }
     
     .desktop-only { display: none; }
     .stats__grid { flex-wrap: wrap; gap: 1rem; }
     .stat-item { flex: 1 1 40%; margin-bottom: 1rem; }
     .mobile-hidden { display: none; }
+    .review-group { grid-template-columns: 1fr; }
 }
 
 @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }

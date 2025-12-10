@@ -72,7 +72,95 @@ document.querySelectorAll('.faq-question').forEach(btn => {
 });
 
 /* =========================================
-   4. APP LOGIC
+   4. CARROSSEL DE DEPOIMENTOS
+========================================= */
+const track = document.querySelector('.carousel-track');
+const slides = Array.from(track.children);
+const nextButton = document.querySelector('.next-btn');
+const prevButton = document.querySelector('.prev-btn');
+const dotsNav = document.querySelector('.carousel-nav');
+const dots = Array.from(dotsNav.children);
+
+const slideWidth = slides[0].getBoundingClientRect().width;
+
+const setSlidePosition = (slide, index) => {
+    slide.style.left = slideWidth * index + 'px';
+};
+slides.forEach(setSlidePosition);
+
+const moveToSlide = (track, currentSlide, targetSlide) => {
+    track.style.transform = 'translateX(-' + targetSlide.style.left + ')';
+    currentSlide.classList.remove('current-slide');
+    targetSlide.classList.add('current-slide');
+};
+
+const updateDots = (currentDot, targetDot) => {
+    currentDot.classList.remove('current-slide');
+    targetDot.classList.add('current-slide');
+};
+
+const getNextSlide = () => {
+    const currentSlide = track.querySelector('.current-slide');
+    const nextSlide = currentSlide.nextElementSibling || slides[0];
+    const currentDot = dotsNav.querySelector('.current-slide');
+    const nextDot = currentDot.nextElementSibling || dots[0];
+    
+    moveToSlide(track, currentSlide, nextSlide);
+    updateDots(currentDot, nextDot);
+};
+
+const getPrevSlide = () => {
+    const currentSlide = track.querySelector('.current-slide');
+    const prevSlide = currentSlide.previousElementSibling || slides[slides.length - 1];
+    const currentDot = dotsNav.querySelector('.current-slide');
+    const prevDot = currentDot.previousElementSibling || dots[dots.length - 1];
+
+    moveToSlide(track, currentSlide, prevSlide);
+    updateDots(currentDot, prevDot);
+};
+
+let autoPlayInterval = setInterval(getNextSlide, 10000);
+
+const resetInterval = () => {
+    clearInterval(autoPlayInterval);
+    autoPlayInterval = setInterval(getNextSlide, 10000);
+};
+
+nextButton.addEventListener('click', () => {
+    getNextSlide();
+    resetInterval();
+});
+
+prevButton.addEventListener('click', () => {
+    getPrevSlide();
+    resetInterval();
+});
+
+dotsNav.addEventListener('click', e => {
+    const targetDot = e.target.closest('button');
+    if (!targetDot) return;
+
+    const currentSlide = track.querySelector('.current-slide');
+    const currentDot = dotsNav.querySelector('.current-slide');
+    const targetIndex = dots.findIndex(dot => dot === targetDot);
+    const targetSlide = slides[targetIndex];
+
+    moveToSlide(track, currentSlide, targetSlide);
+    updateDots(currentDot, targetDot);
+    resetInterval();
+});
+
+window.addEventListener('resize', () => {
+    const newSlideWidth = slides[0].getBoundingClientRect().width;
+    slides.forEach((slide, index) => {
+        slide.style.left = newSlideWidth * index + 'px';
+    });
+    const currentSlide = track.querySelector('.current-slide');
+    track.style.transform = 'translateX(-' + currentSlide.style.left + ')';
+});
+
+/* =========================================
+   5. APP LOGIC
 ========================================= */
 const PRICE_PER_UNIT = 2.50;
 let uploadedFiles = [];
