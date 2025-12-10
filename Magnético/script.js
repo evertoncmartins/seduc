@@ -17,46 +17,107 @@ function closeStudio() {
 }
 
 /* =========================================
-   2. DARK MODE
+   2. SISTEMA DE TEMA (DARK/LIGHT/SYSTEM)
 ========================================= */
-const themeBtns = document.querySelectorAll('.theme-toggle');
 const html = document.documentElement;
+// Botões que abrem o menu (LP, App Header, Sidebar)
+const themeToggles = document.querySelectorAll('.theme-toggle'); 
+// Menus dropdown
+const themeMenus = document.querySelectorAll('.theme-menu');
+// Opções dentro dos menus
+const themeOptions = document.querySelectorAll('.theme-option');
 
-function updateThemeIcons(theme) {
-    themeBtns.forEach(btn => {
-        const icon = btn.querySelector('i');
-        if (theme === 'dark') {
-            icon.classList.replace('ph-moon', 'ph-sun');
-        } else {
-            icon.classList.replace('ph-sun', 'ph-moon');
-        }
-    });
-}
-
-function setTheme(theme) {
+// Função para aplicar o tema
+function applyTheme(theme) {
+    // 1. Remove qualquer classe anterior
+    html.removeAttribute('data-theme');
+    
+    // 2. Lógica de aplicação
     if (theme === 'dark') {
         html.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        html.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
+        updateIcons('dark');
+    } else if (theme === 'light') {
+        html.removeAttribute('data-theme'); // Padrão é light no CSS
+        updateIcons('light');
+    } else if (theme === 'system') {
+        // Verifica preferência do sistema
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (systemDark) html.setAttribute('data-theme', 'dark');
+        else html.removeAttribute('data-theme');
+        updateIcons('system');
     }
-    updateThemeIcons(theme);
+
+    // 3. Atualiza estado ativo no menu
+    themeOptions.forEach(opt => {
+        if(opt.dataset.theme === theme) opt.classList.add('active');
+        else opt.classList.remove('active');
+    });
+
+    // 4. Salva no LocalStorage
+    localStorage.setItem('theme', theme);
 }
 
-const savedTheme = localStorage.getItem('theme');
-const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-    setTheme('dark');
+// Atualiza o ícone do botão principal baseado na escolha
+function updateIcons(currentTheme) {
+    const iconsMap = {
+        'light': 'ph-sun',
+        'dark': 'ph-moon',
+        'system': 'ph-desktop'
+    };
+    
+    // Se for system, precisamos saber qual ícone mostrar visualmente (sol ou lua) ou mostrar o computador?
+    // O pedido mostra ícones específicos no menu. No botão principal, vamos manter o ícone do estado atual.
+    
+    let iconClass = iconsMap[currentTheme];
+    
+    document.querySelectorAll('.theme-toggle i').forEach(icon => {
+        // Remove classes antigas de ícone
+        icon.classList.remove('ph-sun', 'ph-moon', 'ph-desktop', 'ph-sun-dim');
+        icon.classList.add(iconClass);
+    });
 }
 
-themeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const isDark = html.getAttribute('data-theme') === 'dark';
-        setTheme(isDark ? 'light' : 'dark');
+// Inicialização
+const savedTheme = localStorage.getItem('theme') || 'system';
+applyTheme(savedTheme);
+
+// Listener para mudanças no sistema (caso esteja em 'system')
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (localStorage.getItem('theme') === 'system') {
+        applyTheme('system');
+    }
+});
+
+// Abrir/Fechar Menu Dropdown
+themeToggles.forEach(toggle => {
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita fechar imediatamente
+        // Encontra o menu irmão deste botão
+        const menu = toggle.nextElementSibling; 
+        
+        // Fecha outros abertos
+        themeMenus.forEach(m => {
+            if(m !== menu) m.classList.remove('active');
+        });
+
+        if(menu) menu.classList.toggle('active');
     });
 });
+
+// Clique nas opções
+themeOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+        applyTheme(opt.dataset.theme);
+        // Fecha todos os menus
+        themeMenus.forEach(m => m.classList.remove('active'));
+    });
+});
+
+// Fechar ao clicar fora
+document.addEventListener('click', () => {
+    themeMenus.forEach(m => m.classList.remove('active'));
+});
+
 
 /* =========================================
    3. ACCORDION FAQ
@@ -75,94 +136,96 @@ document.querySelectorAll('.faq-question').forEach(btn => {
    4. CARROSSEL DE DEPOIMENTOS
 ========================================= */
 const track = document.querySelector('.carousel-track');
-const slides = Array.from(track.children);
-const nextButton = document.querySelector('.next-btn');
-const prevButton = document.querySelector('.prev-btn');
-const dotsNav = document.querySelector('.carousel-nav');
-const dots = Array.from(dotsNav.children);
+if (track) {
+    const slides = Array.from(track.children);
+    const nextButton = document.querySelector('.next-btn');
+    const prevButton = document.querySelector('.prev-btn');
+    const dotsNav = document.querySelector('.carousel-nav');
+    const dots = Array.from(dotsNav.children);
 
-const slideWidth = slides[0].getBoundingClientRect().width;
+    const slideWidth = slides[0].getBoundingClientRect().width;
 
-const setSlidePosition = (slide, index) => {
-    slide.style.left = slideWidth * index + 'px';
-};
-slides.forEach(setSlidePosition);
+    const setSlidePosition = (slide, index) => {
+        slide.style.left = slideWidth * index + 'px';
+    };
+    slides.forEach(setSlidePosition);
 
-const moveToSlide = (track, currentSlide, targetSlide) => {
-    track.style.transform = 'translateX(-' + targetSlide.style.left + ')';
-    currentSlide.classList.remove('current-slide');
-    targetSlide.classList.add('current-slide');
-};
+    const moveToSlide = (track, currentSlide, targetSlide) => {
+        track.style.transform = 'translateX(-' + targetSlide.style.left + ')';
+        currentSlide.classList.remove('current-slide');
+        targetSlide.classList.add('current-slide');
+    };
 
-const updateDots = (currentDot, targetDot) => {
-    currentDot.classList.remove('current-slide');
-    targetDot.classList.add('current-slide');
-};
+    const updateDots = (currentDot, targetDot) => {
+        currentDot.classList.remove('current-slide');
+        targetDot.classList.add('current-slide');
+    };
 
-const getNextSlide = () => {
-    const currentSlide = track.querySelector('.current-slide');
-    const nextSlide = currentSlide.nextElementSibling || slides[0];
-    const currentDot = dotsNav.querySelector('.current-slide');
-    const nextDot = currentDot.nextElementSibling || dots[0];
-    
-    moveToSlide(track, currentSlide, nextSlide);
-    updateDots(currentDot, nextDot);
-};
+    const getNextSlide = () => {
+        const currentSlide = track.querySelector('.current-slide');
+        const nextSlide = currentSlide.nextElementSibling || slides[0];
+        const currentDot = dotsNav.querySelector('.current-slide');
+        const nextDot = currentDot.nextElementSibling || dots[0];
+        
+        moveToSlide(track, currentSlide, nextSlide);
+        updateDots(currentDot, nextDot);
+    };
 
-const getPrevSlide = () => {
-    const currentSlide = track.querySelector('.current-slide');
-    const prevSlide = currentSlide.previousElementSibling || slides[slides.length - 1];
-    const currentDot = dotsNav.querySelector('.current-slide');
-    const prevDot = currentDot.previousElementSibling || dots[dots.length - 1];
+    const getPrevSlide = () => {
+        const currentSlide = track.querySelector('.current-slide');
+        const prevSlide = currentSlide.previousElementSibling || slides[slides.length - 1];
+        const currentDot = dotsNav.querySelector('.current-slide');
+        const prevDot = currentDot.previousElementSibling || dots[dots.length - 1];
 
-    moveToSlide(track, currentSlide, prevSlide);
-    updateDots(currentDot, prevDot);
-};
+        moveToSlide(track, currentSlide, prevSlide);
+        updateDots(currentDot, prevDot);
+    };
 
-let autoPlayInterval = setInterval(getNextSlide, 10000);
+    let autoPlayInterval = setInterval(getNextSlide, 10000);
 
-const resetInterval = () => {
-    clearInterval(autoPlayInterval);
-    autoPlayInterval = setInterval(getNextSlide, 10000);
-};
+    const resetInterval = () => {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = setInterval(getNextSlide, 10000);
+    };
 
-nextButton.addEventListener('click', () => {
-    getNextSlide();
-    resetInterval();
-});
-
-prevButton.addEventListener('click', () => {
-    getPrevSlide();
-    resetInterval();
-});
-
-dotsNav.addEventListener('click', e => {
-    const targetDot = e.target.closest('button');
-    if (!targetDot) return;
-
-    const currentSlide = track.querySelector('.current-slide');
-    const currentDot = dotsNav.querySelector('.current-slide');
-    const targetIndex = dots.findIndex(dot => dot === targetDot);
-    const targetSlide = slides[targetIndex];
-
-    moveToSlide(track, currentSlide, targetSlide);
-    updateDots(currentDot, targetDot);
-    resetInterval();
-});
-
-window.addEventListener('resize', () => {
-    const newSlideWidth = slides[0].getBoundingClientRect().width;
-    slides.forEach((slide, index) => {
-        slide.style.left = newSlideWidth * index + 'px';
+    nextButton.addEventListener('click', () => {
+        getNextSlide();
+        resetInterval();
     });
-    const currentSlide = track.querySelector('.current-slide');
-    track.style.transform = 'translateX(-' + currentSlide.style.left + ')';
-});
+
+    prevButton.addEventListener('click', () => {
+        getPrevSlide();
+        resetInterval();
+    });
+
+    dotsNav.addEventListener('click', e => {
+        const targetDot = e.target.closest('button');
+        if (!targetDot) return;
+
+        const currentSlide = track.querySelector('.current-slide');
+        const currentDot = dotsNav.querySelector('.current-slide');
+        const targetIndex = dots.findIndex(dot => dot === targetDot);
+        const targetSlide = slides[targetIndex];
+
+        moveToSlide(track, currentSlide, targetSlide);
+        updateDots(currentDot, targetDot);
+        resetInterval();
+    });
+
+    window.addEventListener('resize', () => {
+        const newSlideWidth = slides[0].getBoundingClientRect().width;
+        slides.forEach((slide, index) => {
+            slide.style.left = newSlideWidth * index + 'px';
+        });
+        const currentSlide = track.querySelector('.current-slide');
+        track.style.transform = 'translateX(-' + currentSlide.style.left + ')';
+    });
+}
 
 /* =========================================
    5. APP LOGIC
 ========================================= */
-const PRICE_PER_UNIT = 2.50;
+const PRICE_PER_UNIT = 9.99;
 let uploadedFiles = [];
 
 const fileInput = document.getElementById('file-input');
@@ -173,6 +236,7 @@ const countDisplay = document.getElementById('count-display');
 const priceDisplay = document.getElementById('price-display');
 const btnCheckout = document.getElementById('btn-checkout');
 const btnClearAll = document.getElementById('btn-clear-all');
+const btnAddEmpty = document.getElementById('btn-add-empty');
 
 if (uploadTrigger && fileInput) {
     uploadTrigger.addEventListener('click', () => fileInput.click());
@@ -194,6 +258,10 @@ if (uploadTrigger && fileInput) {
         uploadTrigger.style.borderColor = 'var(--border)';
         if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
     });
+}
+
+if (btnAddEmpty) {
+    btnAddEmpty.addEventListener('click', () => fileInput.click());
 }
 
 if (btnClearAll) {

@@ -38,9 +38,29 @@
                 </nav>
 
                 <div class="header__actions">
-                    <button class="theme-toggle" aria-label="Alternar Tema">
-                        <i class="ph-bold ph-moon"></i>
-                    </button>
+                    <!-- Componente de Tema Dropdown -->
+                    <div class="theme-wrapper">
+                        <button class="theme-toggle btn-icon" id="theme-btn-lp" aria-label="Alterar Tema">
+                            <i class="ph-bold ph-sun-dim"></i> <!-- Ícone muda via JS -->
+                        </button>
+                        
+                        <!-- Menu Dropdown de Temas -->
+                        <div class="theme-menu" id="theme-menu-lp">
+                            <button class="theme-option" data-theme="light">
+                                <i class="ph-bold ph-sun"></i>
+                                <span>Tema claro</span>
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <i class="ph-bold ph-moon"></i>
+                                <span>Tema escuro</span>
+                            </button>
+                            <button class="theme-option" data-theme="system">
+                                <i class="ph-bold ph-desktop"></i>
+                                <span>Padrão do dispositivo</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <button class="btn btn--sm btn--primary nav__btn-studio" onclick="openStudio()">
                         Ir para Estúdio
                     </button>
@@ -177,6 +197,7 @@
 
                         <div class="carousel-track-container">
                             <ul class="carousel-track">
+                                <!-- Slides aqui (conteúdo igual ao anterior) -->
                                 <!-- Slide 1 -->
                                 <li class="carousel-slide current-slide">
                                     <div class="review-group">
@@ -395,7 +416,17 @@
             <div class="app-header-mobile">
                 <button class="btn-icon" onclick="closeStudio()"><i class="ph-bold ph-arrow-left"></i></button>
                 <span class="app-title">Estúdio</span>
-                <button class="theme-toggle btn-icon"><i class="ph-bold ph-moon"></i></button>
+                <!-- Wrapper tema mobile -->
+                <div class="theme-wrapper">
+                    <button class="theme-toggle btn-icon" id="theme-btn-app">
+                        <i class="ph-bold ph-sun-dim"></i>
+                    </button>
+                    <div class="theme-menu theme-menu-mobile" id="theme-menu-app">
+                        <button class="theme-option" data-theme="light"><i class="ph-bold ph-sun"></i><span>Claro</span></button>
+                        <button class="theme-option" data-theme="dark"><i class="ph-bold ph-moon"></i><span>Escuro</span></button>
+                        <button class="theme-option" data-theme="system"><i class="ph-bold ph-desktop"></i><span>Auto</span></button>
+                    </div>
+                </div>
             </div>
 
             <aside class="sidebar">
@@ -403,9 +434,18 @@
                     <button class="btn-back" onclick="closeStudio()">
                         <i class="ph-bold ph-arrow-left"></i> Voltar ao site
                     </button>
-                    <button class="theme-toggle" aria-label="Alterar Tema">
-                        <i class="ph-bold ph-moon"></i>
-                    </button>
+                    
+                    <!-- Wrapper tema desktop sidebar -->
+                    <div class="theme-wrapper">
+                        <button class="theme-toggle btn-icon" id="theme-btn-sidebar">
+                            <i class="ph-bold ph-sun-dim"></i>
+                        </button>
+                        <div class="theme-menu" id="theme-menu-sidebar">
+                            <button class="theme-option" data-theme="light"><i class="ph-bold ph-sun"></i><span>Claro</span></button>
+                            <button class="theme-option" data-theme="dark"><i class="ph-bold ph-moon"></i><span>Escuro</span></button>
+                            <button class="theme-option" data-theme="system"><i class="ph-bold ph-desktop"></i><span>Auto</span></button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="sidebar-content">
@@ -431,7 +471,7 @@
                                     <strong id="count-display">0 fotos</strong>
                                     <span id="price-display">R$ 0,00</span>
                                 </div>
-                                <small>R$ 2,50/un</small>
+                                <small>R$ 9,99/un</small>
                             </div>
                             
                             <div class="action-buttons">
@@ -458,6 +498,10 @@
                         <div class="empty-icon"><i class="ph-duotone ph-images"></i></div>
                         <h3>Sua coleção está vazia</h3>
                         <p>Adicione fotos pelo painel.</p>
+                        <!-- BOTÃO EXTRA -->
+                        <button id="btn-add-empty" class="btn btn--sm btn-empty-state">
+                            <i class="ph-bold ph-plus"></i> Selecionar Fotos
+                        </button>
                     </div>
                 </div>
             </main>
