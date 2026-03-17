@@ -38,6 +38,8 @@ VALUES
     ('Maria Oliveira', 'maria@gmail.com', 'Rio de Janeiro', 40, 'Bronze'),
     ('João Souza', 'joao@gmail.com', 'Belo Horizonte', 35, 'Prata');
 
+-- Configuração: Desativa o modo de atualização segura para esta sessão
+SET SQL_SAFE_UPDATES = 0;
 
 -- Atualização 1: Aumentando o preço da diária de veículos fabricados antes de 2020 em 10%
 UPDATE Veiculos
@@ -71,3 +73,6 @@ WHERE VeiculoID IN (3, 5);
 SELECT VeiculoID, Modelo, Marca, Ano, Status, PrecoDiaria
 FROM Veiculos
 WHERE VeiculoID IN (3, 5);  -- Filtra os veículos com os VeiculoID 3 e 5
+
+-- Configuração: Desativa o modo de atualização segura para esta sessão
+SET SQL_SAFE_UPDATES = 1;
