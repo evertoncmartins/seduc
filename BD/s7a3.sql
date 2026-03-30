@@ -70,9 +70,9 @@ ORDER BY estoque ASC;
 SELECT c.nome, SUM(v.valor_total) AS total_gasto
 FROM vendas v
 JOIN clientes c ON v.id_cliente = c.id_cliente
-WHERE YEAR(v.data_venda) = 2023
+WHERE YEAR(v.data_venda) = 2024
 GROUP BY c.nome
-HAVING SUM(v.valor_total) > 1000
+HAVING SUM(v.valor_total) > 0
 ORDER BY total_gasto DESC;
 
 -- Entender como está executando
@@ -95,7 +95,7 @@ WHERE v.data_venda >= '2024-01-01';
 -- Melhorar a consulta determinando o intervalo de datas
 SELECT c.nome, SUM(v.valor_total) AS total_gasto
 FROM vendas v JOIN clientes c ON v.id_cliente = c.id_cliente
-WHERE v.data_venda BETWEEN '2023-01-01' AND '2023-12-31'
+WHERE v.data_venda BETWEEN '2023-01-01' AND '2024-12-31'
 GROUP BY c.nome
 HAVING SUM(v.valor_total) > 1000
 ORDER BY total_gasto DESC;
