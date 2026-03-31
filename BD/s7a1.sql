@@ -73,11 +73,11 @@ SELECT * FROM relatorios;
 -- Conectar como suporte
 mysql -u suporte -p
 
--- Tentar atualizar cliente (deve funcionar)
-UPDATE clientes SET nome = 'Novo Nome' WHERE id = 1;
-
 -- Selecionar o banco de dados
 USE GerenciamentoSegurancaDB;
+
+-- Tentar atualizar cliente (deve funcionar)
+UPDATE clientes SET nome = 'Novo Nome' WHERE id = 1;
 
 -- Tentar deletar cliente (deve falhar)
 DELETE FROM clientes WHERE id = 1;
