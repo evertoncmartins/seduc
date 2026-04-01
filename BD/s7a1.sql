@@ -103,8 +103,3 @@ SHOW GRANTS FOR 'analista'@'localhost';
 
 -- Mostrar permissões do suporte
 SHOW GRANTS FOR 'suporte'@'localhost';
-
-
-
-
-
