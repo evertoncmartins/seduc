@@ -43,6 +43,10 @@ C:\Program Files\MySQL\MySQL Server 8.0\bin
 .\mysql -u root -p -e "CREATE DATABASE TechSecureDB"
 Get-Content C:\Users\evert\Downloads\TechSecureDB_bck.sql | .\mysql -u root -p TechSecureDB
 
+mysql -u root -p TechSecureDB.sql < C:\Users\evert\Downloads\TechSecureDB_bck.sql
+
+mysql -u root -p TechSecureDB < C:\Users\evert\Downloads\TechSecureDB_bck.sql
+
 
 .\mysql -u root -p
 
