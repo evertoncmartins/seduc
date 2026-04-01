@@ -35,14 +35,17 @@ INSERT INTO transacoes (cliente_id, valor, data_transacao) VALUES
 
 -- Acessar banco de dados
 C:\Program Files\MySQL\MySQL Server 8.0\bin
-mysql -u root -p
 
 -- Backup Completo (Full Backup) - Sem estar no mysql
-mysqldump -u root -p TechSecureDB > C:\Users\ecmdi\Downloads\TechSecureDB_bck.sql
+.\mysqldump -u root -p TechSecureDB > C:\Users\evert\Downloads\TechSecureDB_bck.sql
 
 -- Recuperação do Backup Completo
-mysql -u root -p -e "CREATE DATABASE TechSecureDB"
-mysql -u root -p TechSecureDB < C:\Users\ecmdi\Downloads\TechSecureDB_bck.sql
+.\mysql -u root -p -e "CREATE DATABASE TechSecureDB"
+Get-Content C:\Users\evert\Downloads\TechSecureDB_bck.sql | .\mysql -u root -p TechSecureDB
+
+
+.\mysql -u root -p
+
 
 -- Verificação
 USE TechSecureDB;
