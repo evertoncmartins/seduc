@@ -1,9 +1,14 @@
--- 1. PREPARAÇÃO DO AMBIENTE
+-- ==============================================================
+-- ATIVIDADE: ANALISANDO DADOS DE VENDAS COM SQL
+-- Professor: Everton Martins
+-- Conteúdo: Criação, Inserção, Funções de Agregação e Datas
+-- ==============================================================
+
+-- 1. PREPARAÇÃO DO BANCO DE DADOS
 CREATE DATABASE IF NOT EXISTS ecommerce_db;
 USE ecommerce_db;
 
--- 2. CRIAÇÃO DA TABELA
--- Criamos a estrutura conforme o roteiro.
+-- 2. CRIAÇÃO DA TABELA (DDL)
 CREATE TABLE IF NOT EXISTS vendas (
     id_venda INT AUTO_INCREMENT PRIMARY KEY,
     produto VARCHAR(100) NOT NULL,
@@ -13,58 +18,67 @@ CREATE TABLE IF NOT EXISTS vendas (
 );
 
 -- 3. INSERÇÃO DE DADOS (DML)
--- Adicionei 10 registros para garantir que as consultas retornem múltiplos dados.
--- Como hoje é 28/04/2026, o "mês passado" para o SQL é Março.
+-- Limpando a tabela para evitar duplicidade durante a explicação
+TRUNCATE TABLE vendas;
+
+-- Inserindo dados variados focados no final de Março (Mês Passado)
+-- e alguns em Abril (Mês Atual) para testar os filtros.
 INSERT INTO vendas (produto, quantidade, valor_unitario, data_venda) VALUES
-('Mouse Gamer', 5, 80.00, '2026-03-10'),
-('Teclado Mecânico', 2, 150.00, '2026-03-12'),
-('Monitor 24pol', 1, 900.00, '2026-03-15'),
-('Webcam HD', 3, 120.00, '2026-03-18'),
-('Mouse Gamer', 2, 80.00, '2026-03-20'),
-('Teclado Mecânico', 3, 150.00, '2026-03-22'),
-('Monitor 24pol', 2, 900.00, '2026-03-25'),
-('Headset USB', 4, 200.00, '2026-03-28'),
-('Mouse Gamer', 1, 80.00, '2026-04-05'),
-('Webcam HD', 2, 120.00, '2026-04-10');
+('Mouse Gamer', 5, 80.00, '2026-03-28'),
+('Teclado Mecânico', 2, 150.00, '2026-03-28'),
+('Monitor 24pol', 1, 900.00, '2026-03-29'),
+('Mouse Gamer', 3, 80.00, '2026-03-29'),
+('Headset USB', 4, 210.00, '2026-03-29'),
+('Webcam HD', 6, 125.50, '2026-03-30'),
+('Teclado Mecânico', 3, 150.00, '2026-03-30'),
+('Monitor 24pol', 2, 900.00, '2026-03-31'),
+('Headset USB', 2, 210.00, '2026-03-31'),
+('Webcam HD', 1, 125.50, '2026-03-31'),
+-- Vendas do mês atual (Abril)
+('Mouse Gamer', 1, 80.00, '2026-04-10'),
+('Webcam HD', 2, 125.50, '2026-04-15');
 
--- 4. CONSULTAS (DQL)
+-- ==============================================================
+-- CONSULTAS DE ANÁLISE (DQL)
+-- ==============================================================
 
--- Q1: Quantas vendas no mês passado? 
--- Importante: O SELECT deve vir antes do FROM.
-SELECT COUNT(*) AS total_vendas 
-FROM vendas 
+-- Q1: Quantas vendas foram realizadas no mês passado (Março)?
+SELECT COUNT(*) AS total_vendas
+FROM vendas
 WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
--- Q2: Valor total por produto
--- Usamos SUM para somar e GROUP BY para agrupar.
-SELECT produto, SUM(quantidade * valor_unitario) AS valor_total
+-- Q2: Valor total de vendas de CADA produto (Geral)?
+-- Usamos ROUND para deixar o valor com 2 casas decimais.
+SELECT produto, ROUND(SUM(quantidade * valor_unitario), 2) AS faturamento_total
 FROM vendas
 GROUP BY produto;
 
--- Q3: Produto mais vendido em quantidade
-SELECT produto, SUM(quantidade) AS total_qtd
+-- Q3: Qual foi o produto mais vendido em quantidade?
+SELECT produto, SUM(quantidade) AS total_unidades
 FROM vendas
 GROUP BY produto
-ORDER BY total_qtd DESC
-LIMIT 3; -- Mostra os 3 primeiros para fins didáticos
+ORDER BY total_unidades DESC
+LIMIT 1;
 
--- Q4: Valor médio das vendas por dia no mês passado
--- Agrupa por data para mostrar a média de cada dia.
-SELECT data_venda, AVG(quantidade * valor_unitario) AS media_diaria
+-- Q4: Valor médio das vendas por dia no mês passado?
+SELECT data_venda, ROUND(AVG(quantidade * valor_unitario), 2) AS media_diaria
 FROM vendas
 WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
 GROUP BY data_venda;
 
--- Q5: Maior e menor venda do mês passado
--- MAX e MIN encontram os valores extremos.
+-- Q5: Maior e menor venda (financeira) do mês passado?
 SELECT 
-    MAX(quantidade * valor_unitario) AS maior_valor,
-    MIN(quantidade * valor_unitario) AS menor_valor
+    MAX(quantidade * valor_unitario) AS maior_venda,
+    MIN(quantidade * valor_unitario) AS menor_venda
 FROM vendas
 WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH));
 
--- DESAFIO: Média por dia para cada produto
-SELECT data_venda, produto, AVG(quantidade * valor_unitario) AS media_produto_dia
+-- DESAFIO ADICIONAL: Valor médio da venda por dia para CADA produto no mês passado.
+SELECT 
+    data_venda, 
+    produto, 
+    ROUND(AVG(quantidade * valor_unitario), 2) AS media_valor
 FROM vendas
 WHERE data_venda BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-GROUP BY data_venda, produto;
+GROUP BY data_venda, produto
+ORDER BY data_venda ASC;
