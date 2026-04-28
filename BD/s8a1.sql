@@ -1,9 +1,3 @@
--- ==============================================================
--- ATIVIDADE: ANALISANDO DADOS DE VENDAS COM SQL
--- Professor: Everton Martins
--- Conteúdo: Criação, Inserção, Funções de Agregação e Datas
--- ==============================================================
-
 -- 1. PREPARAÇÃO DO BANCO DE DADOS
 CREATE DATABASE IF NOT EXISTS ecommerce_db;
 USE ecommerce_db;
@@ -34,7 +28,6 @@ INSERT INTO vendas (produto, quantidade, valor_unitario, data_venda) VALUES
 ('Monitor 24pol', 2, 900.00, '2026-03-31'),
 ('Headset USB', 2, 210.00, '2026-03-31'),
 ('Webcam HD', 1, 125.50, '2026-03-31'),
--- Vendas do mês atual (Abril)
 ('Mouse Gamer', 1, 80.00, '2026-04-10'),
 ('Webcam HD', 2, 125.50, '2026-04-15');
 
