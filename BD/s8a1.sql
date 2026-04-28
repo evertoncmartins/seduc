@@ -1,9 +1,3 @@
--- ==============================================================
--- ATIVIDADE PRÁTICA: ANALISANDO DADOS DE VENDAS COM SQL
--- Objetivo: Praticar DDL (Criação), DML (Inserção) e DQL (Consulta)
--- Professor: Everton Martins
--- ==============================================================
-
 -- 1. CRIAÇÃO DO BANCO DE DADOS
 CREATE DATABASE IF NOT EXISTS ecommerce_db;
 USE ecommerce_db;
