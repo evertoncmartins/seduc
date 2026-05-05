@@ -52,12 +52,12 @@ SELECT nome, email, cidade FROM clientes_fisicos;
 -- TAREFA 2: INTERSECT
 -- Encontra os clientes que compraram tanto na loja on-line quanto na loja física.
 
--- Opção A: Usando o comando INTERSECT (Disponível no MySQL 8.0.31+)
+-- Opção A: Usando o comando INTERSECT
 SELECT nome, email, cidade FROM clientes_online
 INTERSECT
 SELECT nome, email, cidade FROM clientes_fisicos;
 
--- Opção B: Alternativa usando INNER JOIN (Para versões do MySQL anteriores a 8.0.31)
+-- Opção B: Alternativa usando INNER JOIN
 SELECT o.nome, o.email, o.cidade
 FROM clientes_online o
 INNER JOIN clientes_fisicos f ON o.email = f.email;
@@ -66,12 +66,12 @@ INNER JOIN clientes_fisicos f ON o.email = f.email;
 -- TAREFA 3: EXCEPT
 -- Liste os clientes que compraram na loja on-line, mas NÃO compraram na loja física.
 
--- Opção A: Usando o comando EXCEPT (Disponível no MySQL 8.0.31+)
+-- Opção A: Usando o comando EXCEPT
 SELECT nome, email, cidade FROM clientes_online
 EXCEPT
 SELECT nome, email, cidade FROM clientes_fisicos;
 
--- Opção B: Alternativa usando LEFT JOIN (Para versões do MySQL anteriores a 8.0.31)
+-- Opção B: Alternativa usando LEFT JOIN
 SELECT o.nome, o.email, o.cidade
 FROM clientes_online o
 LEFT JOIN clientes_fisicos f ON o.email = f.email
