@@ -1,128 +1,105 @@
--- 1. Criação do banco de dados TechDynamics
-CREATE DATABASE IF NOT EXISTS TechDynamics;
-USE TechDynamics;
+-- 1. Preparação: Criação e População Inicial
+-- Nesta etapa, definimos as regras de integridade e inserimos os dados que servirão de base para os testes.
 
--- 2. Criação das tabelas
+-- Criar o banco e tabelas
+CREATE DATABASE IF NOT EXISTS tech_dynamics;
+USE tech_dynamics;
+
+-- Tabela de Produtos com restrição para não permitir estoque negativo
 CREATE TABLE IF NOT EXISTS Produtos (
-    id_produto INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    estoque INT NOT NULL DEFAULT 0,
-    preco DECIMAL(10,2) NOT NULL
+    id_produto INT PRIMARY KEY,
+    nome_produto VARCHAR(100),
+    estoque INT,
+    CONSTRAINT chk_estoque_positivo CHECK (estoque >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS Clientes (
-    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100)
+    id_cliente INT PRIMARY KEY,
+    nome VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS Vendas (
-    id_venda INT PRIMARY KEY AUTO_INCREMENT,
-    id_cliente INT NOT NULL,
-    id_produto INT NOT NULL,
-    data_venda DATE NOT NULL,
-    quantidade INT NOT NULL DEFAULT 1,
-    FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente),
-    FOREIGN KEY (id_produto) REFERENCES Produtos(id_produto)
+    id_venda INT PRIMARY KEY,
+    id_cliente INT,
+    id_produto INT,
+    data_venda DATE,
+    quantidade INT
 );
 
--- 3. Inserção de dados iniciais
--- Produtos
-INSERT INTO Produtos (nome, estoque, preco) VALUES
-('Notebook Elite', 10, 4500.00),
-('Smartphone Pro', 15, 3200.00),
-('Tablet Advanced', 8, 1800.00),
-('Monitor 4K', 12, 2200.00);
+-- INSERÇÕES INICIAIS (DADOS REAIS PARA TESTE)
+INSERT INTO Clientes (id_cliente, nome) VALUES 
+(1, 'Ana Souza'), (2, 'Carlos Lima'), (3, 'João Pedro');
 
--- Clientes
-INSERT INTO Clientes (nome, email) VALUES
-('João Silva', 'joao@email.com'),
-('Maria Oliveira', 'maria@email.com'),
-('Carlos Souza', 'carlos@email.com'),
-('Ana Pereira', 'ana@email.com'),
-('Pedro Costa', 'pedro@email.com');
+INSERT INTO Produtos (id_produto, nome_produto, estoque) VALUES 
+(1, 'Notebook X1', 5), 
+(2, 'Mouse Gamer', 1), 
+(3, 'Teclado Mecânico', 10);
 
--- Verificação dos dados inseridos
+-- Verificar estado inicial
 SELECT * FROM Produtos;
-SELECT * FROM Clientes;
-SELECT * FROM Vendas;
 
 
---- Tarefa 1: Transação Simples (COMMIT)------------------------------------------------------
-USE TechDynamics;
 
--- Verificar estoque antes da venda
-SELECT id_produto, nome, estoque FROM Produtos WHERE id_produto = 3;
 
+
+-- 2. Cenário A: Transação Bem-Sucedida
+-- Aqui demonstramos como o COMMIT confirma as alterações quando tudo corre bem.
+-- Inicia a transação [cite: 193]
+START TRANSACTION; 
+
+-- Registra a venda
+INSERT INTO Vendas (id_venda, id_cliente, id_produto, data_venda, quantidade) 
+VALUES (10, 1, 1, CURDATE(), 1);
+
+-- Baixa o estoque (5 -> 4) [cite: 199]
+UPDATE Produtos SET estoque = estoque - 1 WHERE id_produto = 1;
+
+-- Confirma as alterações permanentemente [cite: 194, 200, 225]
+COMMIT; 
+
+-- Verificação: A venda existe e o estoque diminuiu.
+SELECT * FROM Vendas WHERE id_venda = 10;
+SELECT * FROM Produtos WHERE id_produto = 1;
+
+
+
+
+
+-- 3. Cenário B: Simulação de Erro e ROLLBACK
+-- Este cenário força uma violação da regra de estoque, gerando um erro real no MySQL e exigindo o cancelamento da operação.
+-- Tentativa de venda de produto com estoque insuficiente
 START TRANSACTION;
 
--- Inserir nova venda
-INSERT INTO Vendas (id_cliente, id_produto, data_venda, quantidade)
-VALUES (3, 3, '2024-09-05', 1);
+-- Passo 1: Inserir a venda de 2 unidades do Mouse (só temos 1)
+INSERT INTO Vendas (id_venda, id_cliente, id_produto, data_venda, quantidade) 
+VALUES (11, 2, 2, CURDATE(), 2);
 
--- Atualizar estoque
-UPDATE Produtos
-SET estoque = estoque - 1
-WHERE id_produto = 3;
+-- Passo 2: Tentar baixar o estoque (O MySQL travará aqui devido à CONSTRAINT)
+UPDATE Produtos SET estoque = estoque - 2 WHERE id_produto = 2;
 
-COMMIT;
+-- ERRO ESPERADO: Check constraint 'chk_estoque_positivo' is violated.
 
--- Verificar estoque após a venda
-SELECT id_produto, nome, estoque FROM Produtos WHERE id_produto = 3;
-SELECT * FROM Vendas;
--- -------------------------------------------------------------------------------------------
-
-
---- Tarefa 2: Testando ROLLBACK---------------------------------------------------------------
-USE TechDynamics;
-
--- Verificar estado atual
-SELECT id_produto, nome, estoque FROM Produtos WHERE id_produto = 2;
-SELECT * FROM Vendas WHERE id_produto = 2;
-
-START TRANSACTION;
-
--- Inserir nova venda
-INSERT INTO Vendas (id_cliente, id_produto, data_venda, quantidade)
-VALUES (4, 2, '2024-09-05', 1);
-
--- Simular erro (estoque insuficiente)
--- Suponha que verificamos e o estoque é 0
-SELECT estoque FROM Produtos WHERE id_produto = 2 FOR UPDATE;
-
--- Decidir fazer ROLLBACK
+-- Passo 3: Como o erro impediu o UPDATE, devemos desfazer o Passo 1 [cite: 195, 202]
 ROLLBACK;
 
--- Verificar que a venda não foi inserida
-SELECT * FROM Vendas WHERE id_produto = 2;
--- -------------------------------------------------------------------------------------------
+-- Verificação: A venda 11 NÃO deve existir e o estoque deve continuar 1.
+SELECT * FROM Vendas WHERE id_venda = 11;
+SELECT * FROM Produtos WHERE id_produto = 2;
 
 
--- Tarefa 3: Nível de Isolamento SERIALIZABLE------------------------------------------------
-USE TechDynamics;
 
--- Primeiro terminal/sessão
+
+-- 4. Cenário C: Isolamento de Transações (SERIALIZABLE)
+-- Demonstração de como definir o nível mais alto de isolamento para evitar conflitos em acessos simultâneos.
+-- Define o nível máximo de segurança [cite: 214, 231]
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
 START TRANSACTION;
 
--- Inserir nova venda
-INSERT INTO Vendas (id_cliente, id_produto, data_venda, quantidade)
-VALUES (5, 4, '2024-09-05', 1);
+-- Se outra pessoa tentar vender o mesmo produto agora, ela ficará "na fila"
+INSERT INTO Vendas (id_venda, id_cliente, id_produto, data_venda, quantidade) 
+VALUES (12, 3, 3, CURDATE(), 1);
 
--- Deixar esta transação aberta (não fazer COMMIT ainda)
+UPDATE Produtos SET estoque = estoque - 1 WHERE id_produto = 3;
 
--- Segundo terminal/sessão (abra uma nova conexão ao MySQL)
--- Tentar fazer uma operação concorrente
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-START TRANSACTION;
--- Esta operação ficará bloqueada até a primeira transação ser concluída
-UPDATE Produtos SET estoque = estoque - 1 WHERE id_produto = 4;
-
--- Voltar ao primeiro terminal e fazer COMMIT
 COMMIT;
-
--- Para testar a venda realizada
-SELECT * FROM produtos WHERE id_produto = 4;
-
--- Agora a segunda transação será desbloqueada e poderá continuar
--- -------------------------------------------------------------------------------------------
