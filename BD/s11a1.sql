@@ -10,7 +10,7 @@ CREATE TABLE produtos (
     estoque INT
 );
 
--- Criar CSV e salvar na pasta > C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/
+-- Criar CSV e salvar na pasta com o nome produtos.csv > C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/
 nome_produto,preco,estoque
 Notebook,2500.00,15
 Smartphone,1500.00,30
